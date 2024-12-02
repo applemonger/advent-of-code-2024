@@ -7,7 +7,7 @@ struct Level {
 impl From<&str> for Level {
     fn from(s: &str) -> Self {
         Level {
-            values: s.split(" ").map(|num| num.parse::<i64>().unwrap()).collect()
+            values: s.split(' ').map(|num| num.parse::<i64>().unwrap()).collect()
         }
     }
 }
@@ -22,7 +22,7 @@ impl Level {
     fn is_valid_step_size(&self) -> bool {
         self.values.windows(2).all(|pair| {
             let diff = (pair[1] - pair[0]).abs();
-            diff >= 1 && diff <= 3
+            (1..=3).contains(&diff)
         })
     }
 
@@ -45,7 +45,7 @@ impl Level {
 #[aocd(2024, 2)]
 pub fn solution1() {
     let safe_levels: u64 = input!()
-        .split("\n")
+        .split('\n')
         .map(|s| Level::from(s).is_safe() as u64)
         .sum();
 
@@ -55,7 +55,7 @@ pub fn solution1() {
 #[aocd(2024, 2)]
 pub fn solution2() {
     let safe_levels: u64 = input!()
-        .split("\n")
+        .split('\n')
         .map(|s| Level::from(s).is_partially_safe() as u64)
         .sum();
 

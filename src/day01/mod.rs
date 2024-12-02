@@ -5,7 +5,7 @@ use aocd::*;
 #[aocd(2024, 1)]
 pub fn solution1() {
     let data: Vec<(i64, i64)> = input!()
-        .split("\n")
+        .split('\n')
         .map(|s| {
             let pair: Vec<i64> = s.split("   ").map(|n| n.parse::<i64>().unwrap()).collect();
             (pair[0], pair[1])
@@ -30,7 +30,7 @@ pub fn solution1() {
 #[aocd(2024, 1)]
 pub fn solution2() {
     let data: Vec<(i64, i64)> = input!()
-        .split("\n")
+        .split('\n')
         .map(|s| {
             let pair: Vec<i64> = s.split("   ").map(|n| n.parse::<i64>().unwrap()).collect();
             (pair[0], pair[1])
