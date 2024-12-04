@@ -12,12 +12,11 @@ impl Grid {
         let mut height = 0;
         let values: Vec<char> = input
             .split('\n')
-            .map(|s| {
+            .flat_map(|s| {
                 width = s.len();
                 height += 1;
                 s.chars()
             })
-            .flatten()
             .collect();
         Grid {
             values,
@@ -55,7 +54,7 @@ pub fn solution1() {
         for y in 0..grid.height as i32 {
             if 'X' == grid.get(x, y) {
                 for (u, v) in [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)] {
-                    if String::from("XMAS") == grid.get_word(x, y, u, v, 4) {
+                    if grid.get_word(x, y, u, v, 4) == *"XMAS" {
                         count += 1;
                     }
                 }
@@ -74,8 +73,8 @@ pub fn solution2() {
         for x in 0..grid.width as i32 {
             let first = grid.get_word(x, y, 1, 1, 3);
             let second = grid.get_word(x+2, y, -1, 1, 3);
-            if first == String::from("MAS") || first == String::from("SAM") {
-                if second == String::from("MAS") || second == String::from("SAM") {
+            if first == *"MAS" || first == *"SAM" {
+                if second == *"MAS" || second == *"SAM" {
                     count += 1;
                 }
             }
