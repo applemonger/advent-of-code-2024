@@ -18,21 +18,23 @@ impl Grid {
         }
     }
 
-    fn get(&self, x: i32, y: i32) -> char {
+    fn get(&self, x: i32, y: i32) -> Option<char> {
         if !(0..self.width).contains(&x) || !(0..self.height).contains(&y) {
-            '!'
+            None
         } else {
             let index = y * self.width + x;
-            *self.values.get(index as usize).unwrap()
+            Some(self.values[index as usize])
         }
     }
 
     fn get_word(&self, x: i32, y: i32, u: i32, v: i32, length: i32) -> String {
-        (0..length).map(|scale| {
-            let x_offset = u * scale;
-            let y_offset = v * scale;
-            self.get(x + x_offset, y + y_offset)
-        }).collect()
+        (0..length)
+            .flat_map(|scale| {
+                let x_offset = u * scale;
+                let y_offset = v * scale;
+                self.get(x + x_offset, y + y_offset)
+            })
+            .collect()
     }
 }
 
@@ -41,21 +43,11 @@ pub fn solution1() {
     let data = input!();
     let grid = Grid::new(data);
     let mut count = 0;
-    let directions = [
-        (-1, -1),
-        (-1, 0),
-        (-1, 1),
-        (0, -1),
-        (0, 1),
-        (1, -1),
-        (1, 0),
-        (1, 1),
-    ];
     for x in 0..grid.width {
         for y in 0..grid.height {
-            if 'X' == grid.get(x, y) {
-                for (u, v) in directions {
-                    if grid.get_word(x, y, u, v, 4) == *"XMAS" {
+            for u in -1..=1 {
+                for v in -1..=1 {
+                    if (u, v) != (0, 0) && grid.get_word(x, y, u, v, 4) == *"XMAS" {
                         count += 1;
                     }
                 }
