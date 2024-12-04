@@ -3,21 +3,18 @@ use aocd::*;
 struct Grid {
     values: Vec<char>,
     width: i32,
-    height: i32
+    height: i32,
 }
 
 impl Grid {
     fn new(input: String) -> Grid {
-        let values: Vec<char> = input
-            .split('\n')
-            .flat_map(|s| s.chars())
-            .collect();
+        let values: Vec<char> = input.split('\n').flat_map(|s| s.chars()).collect();
         let width = input.split('\n').next().unwrap().len();
         let height = values.len() / width;
         Grid {
             values,
             width: width as i32,
-            height: height as i32
+            height: height as i32,
         }
     }
 
@@ -35,7 +32,7 @@ impl Grid {
         for scale in 0..length {
             let x_offset = u * scale;
             let y_offset = v * scale;
-            word.push(self.get(x+x_offset, y+y_offset));
+            word.push(self.get(x + x_offset, y + y_offset));
         }
         word
     }
@@ -46,10 +43,20 @@ pub fn solution1() {
     let data = input!();
     let grid = Grid::new(data);
     let mut count = 0;
+    let offsets = [
+        (-1, -1),
+        (-1, 0),
+        (-1, 1),
+        (0, -1),
+        (0, 1),
+        (1, -1),
+        (1, 0),
+        (1, 1),
+    ];
     for x in 0..grid.width {
         for y in 0..grid.height {
             if 'X' == grid.get(x, y) {
-                for (u, v) in [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)] {
+                for (u, v) in offsets {
                     if grid.get_word(x, y, u, v, 4) == *"XMAS" {
                         count += 1;
                     }
@@ -68,7 +75,7 @@ pub fn solution2() {
     for y in 0..grid.height {
         for x in 0..grid.width {
             let first = grid.get_word(x, y, 1, 1, 3);
-            let second = grid.get_word(x+2, y, -1, 1, 3);
+            let second = grid.get_word(x + 2, y, -1, 1, 3);
             if (first == *"MAS" || first == *"SAM") && (second == *"MAS" || second == *"SAM") {
                 count += 1;
             }

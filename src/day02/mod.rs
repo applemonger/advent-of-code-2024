@@ -1,13 +1,16 @@
 use aocd::*;
 
 struct Level {
-    values: Vec<i64>
+    values: Vec<i64>,
 }
 
 impl From<&str> for Level {
     fn from(s: &str) -> Self {
         Level {
-            values: s.split(' ').map(|num| num.parse::<i64>().unwrap()).collect()
+            values: s
+                .split(' ')
+                .map(|num| num.parse::<i64>().unwrap())
+                .collect(),
         }
     }
 }
@@ -35,7 +38,9 @@ impl Level {
         for i in 0..self.values.len() {
             let mut values_copy = self.values.clone();
             values_copy.remove(i);
-            let level = Level { values: values_copy };
+            let level = Level {
+                values: values_copy,
+            };
             valid |= level.is_safe();
         }
         valid

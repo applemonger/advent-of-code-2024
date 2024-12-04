@@ -5,7 +5,8 @@ use regex::Regex;
 pub fn solution1() {
     let data = input!();
     let re = Regex::new(r"mul\((\d{1,3}),(\d{1,3})\)").unwrap();
-    let sum: u64 = re.captures_iter(data.as_str())
+    let sum: u64 = re
+        .captures_iter(data.as_str())
         .map(|c| {
             let (_, [first, second]) = c.extract();
             let first = first.parse::<u64>().unwrap();
@@ -29,7 +30,10 @@ pub fn solution2() {
             } else if extract == "don't()" {
                 enabled = false;
             } else {
-                let pair: Vec<u64> = extract.split(',').map(|num| num.parse::<u64>().unwrap()).collect();
+                let pair: Vec<u64> = extract
+                    .split(',')
+                    .map(|num| num.parse::<u64>().unwrap())
+                    .collect();
                 let first = *pair.first().unwrap();
                 let second = *pair.last().unwrap();
                 score += (enabled as u64) * first * second;
