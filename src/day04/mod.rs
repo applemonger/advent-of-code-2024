@@ -2,35 +2,31 @@ use aocd::*;
 
 struct Grid {
     values: Vec<char>,
-    width: usize,
-    height: usize
+    width: i32,
+    height: i32
 }
 
 impl Grid {
     fn new(input: String) -> Grid {
-        let mut width = 0;
-        let mut height = 0;
         let values: Vec<char> = input
             .split('\n')
-            .flat_map(|s| {
-                width = s.len();
-                height += 1;
-                s.chars()
-            })
+            .flat_map(|s| s.chars())
             .collect();
+        let width = input.split('\n').next().unwrap().len();
+        let height = values.len() / width;
         Grid {
             values,
-            width,
-            height
+            width: width as i32,
+            height: height as i32
         }
     }
 
     fn get(&self, x: i32, y: i32) -> char {
-        if !(0..self.width as i32).contains(&x) || !(0..self.height as i32).contains(&y) {
+        if !(0..self.width).contains(&x) || !(0..self.height).contains(&y) {
             '!'
         } else {
-            let index = y as usize * self.width + x as usize;
-            *self.values.get(index).unwrap()
+            let index = y * self.width + x;
+            *self.values.get(index as usize).unwrap()
         }
     }
 
@@ -50,8 +46,8 @@ pub fn solution1() {
     let data = input!();
     let grid = Grid::new(data);
     let mut count = 0;
-    for x in 0..grid.width as i32 {
-        for y in 0..grid.height as i32 {
+    for x in 0..grid.width {
+        for y in 0..grid.height {
             if 'X' == grid.get(x, y) {
                 for (u, v) in [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)] {
                     if grid.get_word(x, y, u, v, 4) == *"XMAS" {
@@ -69,8 +65,8 @@ pub fn solution2() {
     let data = input!();
     let grid = Grid::new(data);
     let mut count = 0;
-    for y in 0..grid.height as i32 {
-        for x in 0..grid.width as i32 {
+    for y in 0..grid.height {
+        for x in 0..grid.width {
             let first = grid.get_word(x, y, 1, 1, 3);
             let second = grid.get_word(x+2, y, -1, 1, 3);
             if first == *"MAS" || first == *"SAM" {
