@@ -28,13 +28,11 @@ impl Grid {
     }
 
     fn get_word(&self, x: i32, y: i32, u: i32, v: i32, length: i32) -> String {
-        let mut word = String::new();
-        for scale in 0..length {
+        (0..length).map(|scale| {
             let x_offset = u * scale;
             let y_offset = v * scale;
-            word.push(self.get(x + x_offset, y + y_offset));
-        }
-        word
+            self.get(x + x_offset, y + y_offset)
+        }).collect()
     }
 }
 
@@ -43,7 +41,7 @@ pub fn solution1() {
     let data = input!();
     let grid = Grid::new(data);
     let mut count = 0;
-    let offsets = [
+    let directions = [
         (-1, -1),
         (-1, 0),
         (-1, 1),
@@ -56,7 +54,7 @@ pub fn solution1() {
     for x in 0..grid.width {
         for y in 0..grid.height {
             if 'X' == grid.get(x, y) {
-                for (u, v) in offsets {
+                for (u, v) in directions {
                     if grid.get_word(x, y, u, v, 4) == *"XMAS" {
                         count += 1;
                     }
