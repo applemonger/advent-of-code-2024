@@ -69,10 +69,8 @@ pub fn solution2() {
         for x in 0..grid.width {
             let first = grid.get_word(x, y, 1, 1, 3);
             let second = grid.get_word(x+2, y, -1, 1, 3);
-            if first == *"MAS" || first == *"SAM" {
-                if second == *"MAS" || second == *"SAM" {
-                    count += 1;
-                }
+            if (first == *"MAS" || first == *"SAM") && (second == *"MAS" || second == *"SAM") {
+                count += 1;
             }
         }
     }
