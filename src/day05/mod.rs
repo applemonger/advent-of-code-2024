@@ -36,9 +36,7 @@ fn is_valid_update(orders: &[i32], rules: &HashMap<i32, HashSet<i32>>) -> bool {
 pub fn solution1() {
     let data = input!();
     let rules = read_rules(&data);
-    let updates = read_updates(&data);
-
-    let score: i32 = updates
+    let score: i32 = read_updates(&data)
         .into_iter()
         .filter(|orders| is_valid_update(orders, &rules))
         .map(|orders| orders[orders.len() / 2])
@@ -51,9 +49,7 @@ pub fn solution1() {
 pub fn solution2() {
     let data = input!();
     let rules = read_rules(&data);
-    let updates = read_updates(&data);
-
-    let score: i32 = updates
+    let score: i32 = read_updates(&data)
         .into_iter()
         .filter(|orders| !is_valid_update(orders, &rules))
         .map(|mut orders| {
