@@ -1,19 +1,20 @@
+use regex::Regex;
 use std::collections::{HashMap, HashSet};
 
 use aocd::*;
 
 fn read_rules(input: &str) -> HashMap<i32, HashSet<i32>> {
     let mut rules = HashMap::<i32, HashSet<i32>>::new();
+    let re = Regex::new(r"(\d+)\|(\d+)").unwrap();
     input
         .lines()
-        .flat_map(|c| c.contains('|').then_some(c.to_string()))
-        .for_each(|s| {
-            let pair: Vec<i32> = s
-                .split('|')
-                .map(|num| num.parse::<i32>().unwrap())
-                .collect();
-            let entry = rules.entry(pair[0]).or_default();
-            entry.insert(pair[1]);
+        .filter(|line| line.contains('|'))
+        .for_each(|line| {
+            let captures = re.captures(line).unwrap();
+            let first = captures.get(1).unwrap().as_str().parse::<i32>().unwrap();
+            let second = captures.get(2).unwrap().as_str().parse::<i32>().unwrap();
+            let entry = rules.entry(first).or_default();
+            entry.insert(second);
         });
     rules
 }
@@ -21,13 +22,22 @@ fn read_rules(input: &str) -> HashMap<i32, HashSet<i32>> {
 fn read_updates(input: &str) -> Vec<Vec<i32>> {
     input
         .lines()
-        .flat_map(|c| c.contains(',').then_some(c.to_string()))
-        .map(|s| {
-            s.split(',')
+        .filter(|line| line.contains(','))
+        .map(|line| {
+            line.split(',')
                 .map(|num| num.parse::<i32>().unwrap())
                 .collect()
         })
         .collect()
+}
+
+fn is_valid_update(orders: &Vec<i32>, rules: &HashMap<i32, HashSet<i32>>) -> bool {
+    let n = orders.len();
+    orders.iter().take(n - 1).enumerate().all(|(i, order)| {
+        let after: HashSet<i32> = orders[(i + 1)..].iter().cloned().collect();
+        let allowed = rules.get(order).cloned().unwrap_or_default();
+        after.is_subset(&allowed)
+    })
 }
 
 #[aocd(2024, 5)]
@@ -36,25 +46,11 @@ pub fn solution1() {
     let rules = read_rules(&data);
     let updates = read_updates(&data);
 
-    let mut score = 0;
-    updates.iter().for_each(|orders| {
-        let n = orders.len();
-        let mut valid = true;
-        for (i, order) in orders.iter().enumerate() {
-            if i != (n - 1) {
-                let rest = &orders[(i + 1)..n];
-                let rest: HashSet<i32> = rest.iter().cloned().collect();
-                let allowed = rules.get(order).unwrap_or(&HashSet::new()).clone();
-                if !rest.is_subset(&allowed) {
-                    valid = false;
-                }
-            }
-        }
-        if valid {
-            let middle_order = orders[n / 2];
-            score += middle_order;
-        }
-    });
+    let score: i32 = updates
+        .into_iter()
+        .filter(|orders| is_valid_update(orders, &rules))
+        .map(|orders| orders[orders.len() / 2])
+        .sum();
 
     submit!(1, score);
 }
@@ -65,34 +61,18 @@ pub fn solution2() {
     let rules = read_rules(&data);
     let updates = read_updates(&data);
 
-    let mut score = 0;
-    updates.iter().for_each(|orders| {
-        let n = orders.len();
-        let mut valid = true;
-        for (i, order) in orders.iter().enumerate() {
-            if i != (n - 1) {
-                let rest = &orders[(i + 1)..n];
-                let rest: HashSet<i32> = rest.iter().cloned().collect();
-                let allowed = rules.get(order).unwrap_or(&HashSet::new()).clone();
-                if !rest.is_subset(&allowed) {
-                    valid = false;
-                }
-            }
-        }
-        if !valid {
-            let mut ordered_update = vec![0; n];
-            for (i, order) in orders.iter().enumerate() {
-                let allowed = rules.get(order).unwrap_or(&HashSet::new()).clone();
-                let mut rest = orders.clone();
-                rest.remove(i);
-                let rest: HashSet<i32> = rest.iter().cloned().collect();
-                let index = n - rest.intersection(&allowed).count() - 1;
-                ordered_update[index] = *order;
-            }
-            let middle_order = ordered_update[n / 2];
-            score += middle_order;
-        }
-    });
+    let score: i32 = updates
+        .into_iter()
+        .filter(|orders| !is_valid_update(orders, &rules))
+        .map(|mut orders| {
+            let orders_set: HashSet<i32> = orders.iter().cloned().collect();
+            orders.sort_by_key(|order| {
+                let allowed = rules.get(order).cloned().unwrap_or_default();
+                orders_set.intersection(&allowed).count()
+            });
+            orders[orders.len() / 2]
+        })
+        .sum();
 
     submit!(2, score);
 }
