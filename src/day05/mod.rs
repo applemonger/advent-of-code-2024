@@ -1,20 +1,16 @@
-use regex::Regex;
 use std::collections::{HashMap, HashSet};
 
 use aocd::*;
 
 fn read_rules(input: &str) -> HashMap<i32, HashSet<i32>> {
     let mut rules = HashMap::<i32, HashSet<i32>>::new();
-    let re = Regex::new(r"(\d+)\|(\d+)").unwrap();
     input
         .lines()
         .filter(|line| line.contains('|'))
         .for_each(|line| {
-            let captures = re.captures(line).unwrap();
-            let first = captures.get(1).unwrap().as_str().parse::<i32>().unwrap();
-            let second = captures.get(2).unwrap().as_str().parse::<i32>().unwrap();
-            let entry = rules.entry(first).or_default();
-            entry.insert(second);
+            let pair: Vec<i32> = line.split('|').map(|num| num.parse().unwrap()).collect();
+            let entry = rules.entry(pair[0]).or_default();
+            entry.insert(pair[1]);
         });
     rules
 }
@@ -31,7 +27,7 @@ fn read_updates(input: &str) -> Vec<Vec<i32>> {
         .collect()
 }
 
-fn is_valid_update(orders: &Vec<i32>, rules: &HashMap<i32, HashSet<i32>>) -> bool {
+fn is_valid_update(orders: &[i32], rules: &HashMap<i32, HashSet<i32>>) -> bool {
     let n = orders.len();
     orders.iter().take(n - 1).enumerate().all(|(i, order)| {
         let after: HashSet<i32> = orders[(i + 1)..].iter().cloned().collect();
