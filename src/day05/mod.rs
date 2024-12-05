@@ -19,11 +19,7 @@ fn read_updates(input: &str) -> Vec<Vec<i32>> {
     input
         .lines()
         .filter(|line| line.contains(','))
-        .map(|line| {
-            line.split(',')
-                .map(|num| num.parse::<i32>().unwrap())
-                .collect()
-        })
+        .map(|line| line.split(',').map(|num| num.parse().unwrap()).collect())
         .collect()
 }
 
