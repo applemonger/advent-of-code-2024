@@ -5,6 +5,7 @@ use aocd::*;
 #[derive(Clone)]
 struct Grid {
     values: Vec<char>,
+    start: (i32, i32),
     width: i32,
     height: i32,
 }
@@ -12,12 +13,14 @@ struct Grid {
 impl Grid {
     fn new(input: String) -> Grid {
         let values: Vec<char> = input.lines().flat_map(|s| s.chars()).collect();
-        let width = input.lines().next().unwrap().len();
-        let height = values.len() / width;
+        let guard = values.iter().position(|c| *c == '^').unwrap() as i32;
+        let width = input.lines().next().unwrap().len() as i32;
+        let height = values.len() as i32 / width;
         Grid {
             values,
-            width: width as i32,
-            height: height as i32,
+            start: (guard % width, guard / width),
+            width,
+            height,
         }
     }
 
@@ -36,21 +39,10 @@ impl Grid {
             self.values[index as usize] = c;
         }
     }
-
-    fn get_guard_position(&self) -> Option<(i32, i32)> {
-        for x in 0..self.width {
-            for y in 0..self.height {
-                if let Some('^') = self.get((x, y)) {
-                    return Some((x, y));
-                }
-            }
-        }
-        None
-    }
 }
 
-fn patrol(map: &Grid) -> Option<HashSet<((i32, i32), (i32, i32))>> {
-    let mut position = map.get_guard_position().unwrap();
+fn patrol(map: &Grid) -> Option<HashSet<(i32, i32)>> {
+    let mut position = map.start;
     let mut direction = (0, -1);
     let mut path = HashSet::<((i32, i32), (i32, i32))>::new();
     'patrol: loop {
@@ -68,7 +60,9 @@ fn patrol(map: &Grid) -> Option<HashSet<((i32, i32), (i32, i32))>> {
             return None;
         }
     }
-    Some(path)
+    let mut positions: HashSet<(i32, i32)> = path.iter().map(|(pos, _)| *pos).collect();
+    positions.remove(&map.start);
+    Some(positions)
 }
 
 #[aocd(2024, 6)]
@@ -76,29 +70,22 @@ pub fn solution1() {
     let data = input!();
     let map = Grid::new(data);
     let path = patrol(&map).unwrap();
-    let positions: HashSet<(i32, i32)> = path.iter().map(|(pos, _)| *pos).collect();
-    submit!(1, positions.len());
-} 
+    submit!(1, path.len() + 1);
+}
 
 #[aocd(2024, 6)]
 pub fn solution2() {
     let data = input!();
-    let map = Grid::new(data);
-    let start = map.get_guard_position().unwrap();
+    let mut map = Grid::new(data);
     let path = patrol(&map).unwrap();
-    let positions: HashSet<(i32, i32)> = path.iter().map(|(pos, _)| *pos).collect();
-
-    let mut obstacles = HashSet::<(i32, i32)>::new();
-    for obstacle in positions.into_iter() {
-        if obstacle != start {
-            let mut map_copy = map.clone();
-            map_copy.set(obstacle, '#');
-            let path = patrol(&map_copy);
-            if path.is_none() {
-                obstacles.insert(obstacle);
-            }
-        }
-    }
-
+    let obstacles: HashSet<(i32, i32)> = path
+        .into_iter()
+        .filter(|&pos| {
+            map.set(pos, '#');
+            let escape = patrol(&map);
+            map.set(pos, '.');
+            escape.is_none()
+        })
+        .collect();
     submit!(2, obstacles.len());
 }
