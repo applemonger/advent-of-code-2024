@@ -60,8 +60,7 @@ fn patrol(map: &Grid) -> Option<HashSet<(i32, i32)>> {
             return None;
         }
     }
-    let mut positions: HashSet<(i32, i32)> = path.iter().map(|(pos, _)| *pos).collect();
-    positions.remove(&map.start);
+    let positions: HashSet<(i32, i32)> = path.iter().map(|(pos, _)| *pos).collect();
     Some(positions)
 }
 
@@ -70,14 +69,15 @@ pub fn solution1() {
     let data = input!();
     let map = Grid::new(data);
     let path = patrol(&map).unwrap();
-    submit!(1, path.len() + 1);
+    submit!(1, path.len());
 }
 
 #[aocd(2024, 6)]
 pub fn solution2() {
     let data = input!();
     let mut map = Grid::new(data);
-    let path = patrol(&map).unwrap();
+    let mut path = patrol(&map).unwrap();
+    path.remove(&map.start);
     let obstacles: HashSet<(i32, i32)> = path
         .into_iter()
         .filter(|&pos| {
