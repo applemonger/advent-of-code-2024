@@ -22,11 +22,11 @@ impl Grid {
     }
 
     fn get(&self, xy: (i32, i32)) -> Option<char> {
-        if !(0..self.width).contains(&xy.0) || !(0..self.height).contains(&xy.1) {
-            None
-        } else {
+        if (0..self.width).contains(&xy.0) && (0..self.height).contains(&xy.1) {
             let index = xy.1 * self.width + xy.0;
             Some(self.values[index as usize])
+        } else {
+            None
         }
     }
 
@@ -49,10 +49,7 @@ impl Grid {
     }
 }
 
-#[aocd(2024, 6)]
-pub fn solution1() {
-    let data = input!();
-    let map = Grid::new(data);
+fn patrol(map: &Grid) -> Option<HashSet<((i32, i32), (i32, i32))>> {
     let mut position = map.get_guard_position().unwrap();
     let mut direction = (0, -1);
     let mut path = HashSet::<((i32, i32), (i32, i32))>::new();
@@ -66,11 +63,20 @@ pub fn solution1() {
         if map.get(heading).is_none() {
             break 'patrol;
         }
-        position = (position.0 + direction.0, position.1 + direction.1);
+        position = heading;
+        if path.contains(&(position, direction)) {
+            return None;
+        }
     }
-    
-    let positions: HashSet<(i32, i32)> = path.iter().map(|(pos, _)| *pos).collect();
+    Some(path)
+}
 
+#[aocd(2024, 6)]
+pub fn solution1() {
+    let data = input!();
+    let map = Grid::new(data);
+    let path = patrol(&map).unwrap();
+    let positions: HashSet<(i32, i32)> = path.iter().map(|(pos, _)| *pos).collect();
     submit!(1, positions.len());
 } 
 
@@ -78,23 +84,8 @@ pub fn solution1() {
 pub fn solution2() {
     let data = input!();
     let map = Grid::new(data);
-    let mut position = map.get_guard_position().unwrap();
-    let start = position;
-    let mut direction = (0, -1);
-    let mut path = HashSet::<((i32, i32), (i32, i32))>::new();
-    'patrol: loop {
-        path.insert((position, direction));
-        let mut heading = (position.0 + direction.0, position.1 + direction.1);
-        while let Some('#') = map.get(heading) {
-            direction = (-direction.1, direction.0);
-            heading = (position.0 + direction.0, position.1 + direction.1);
-        }
-        if map.get(heading).is_none() {
-            break 'patrol;
-        }
-        position = (position.0 + direction.0, position.1 + direction.1);
-    }
-    
+    let start = map.get_guard_position().unwrap();
+    let path = patrol(&map).unwrap();
     let positions: HashSet<(i32, i32)> = path.iter().map(|(pos, _)| *pos).collect();
 
     let mut obstacles = HashSet::<(i32, i32)>::new();
@@ -102,24 +93,9 @@ pub fn solution2() {
         if obstacle != start {
             let mut map_copy = map.clone();
             map_copy.set(obstacle, '#');
-            let mut position = map_copy.get_guard_position().unwrap();
-            let mut direction = (0, -1);
-            let mut path = HashSet::<((i32, i32), (i32, i32))>::new();
-            'simulation: loop {
-                path.insert((position, direction));
-                let mut heading = (position.0 + direction.0, position.1 + direction.1);
-                while let Some('#') = map_copy.get(heading) {
-                    direction = (-direction.1, direction.0);
-                    heading = (position.0 + direction.0, position.1 + direction.1);
-                }
-                if map_copy.get(heading).is_none() {
-                    break 'simulation;
-                }
-                position = (position.0 + direction.0, position.1 + direction.1);
-                if path.contains(&(heading, direction)) {
-                    obstacles.insert(obstacle);
-                    break 'simulation;
-                }
+            let path = patrol(&map_copy);
+            if path.is_none() {
+                obstacles.insert(obstacle);
             }
         }
     }
