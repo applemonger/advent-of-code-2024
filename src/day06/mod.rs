@@ -44,16 +44,14 @@ impl Grid {
 fn patrol(map: &Grid) -> Option<HashSet<(i32, i32)>> {
     let mut position = map.start;
     let mut direction = (0, -1);
+    let mut heading = (position.0 + direction.0, position.1 + direction.1);
     let mut path = HashSet::<((i32, i32), (i32, i32))>::new();
-    'patrol: loop {
+    while map.get(heading).is_some() {
         path.insert((position, direction));
-        let mut heading = (position.0 + direction.0, position.1 + direction.1);
+        heading = (position.0 + direction.0, position.1 + direction.1);
         while let Some('#') = map.get(heading) {
             direction = (-direction.1, direction.0);
             heading = (position.0 + direction.0, position.1 + direction.1);
-        }
-        if map.get(heading).is_none() {
-            break 'patrol;
         }
         position = heading;
         if path.contains(&(position, direction)) {
