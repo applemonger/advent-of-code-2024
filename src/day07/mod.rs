@@ -21,21 +21,18 @@ impl From<&str> for Equation {
 
 impl Equation {
     fn solvable(&self, n_operators: i32) -> bool {
-        let operators: Vec<i32> = (0..n_operators).collect();
-        let num_values = self.values.len();
-        repeat_n(operators.iter(), num_values - 1)
+        repeat_n(0..n_operators, self.values.len() - 1)
             .multi_cartesian_product()
             .any(|combo| {
-                let first = self.values[0];
                 let total: i64 =
                     self.values
                         .iter()
                         .enumerate()
                         .skip(1)
-                        .fold(first, |acc, (idx, &num)| {
-                            if *combo[idx - 1] == 0 {
+                        .fold(self.values[0], |acc, (idx, &num)| {
+                            if combo[idx - 1] == 0 {
                                 acc * num
-                            } else if *combo[idx - 1] == 1 {
+                            } else if combo[idx - 1] == 1 {
                                 acc + num
                             } else {
                                 format!("{}{}", acc, num).parse().unwrap()
