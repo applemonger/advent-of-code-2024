@@ -24,38 +24,9 @@ impl From<&str> for Equation {
     }
 }
 
-fn get_bit_at(input: u32, n: u8) -> bool {
-    if n < 32 {
-        input & (1 << n) != 0
-    } else {
-        false
-    }
-}
-
 impl Equation {
-    fn solvable(&self) -> bool {
-        let num_operators = self.values.len() as u32;
-        let combinations: u32 = 2_u32.pow(num_operators);
-        (0..combinations).any(|i| {
-            let first = self.values[0];
-            let total: i64 =
-                self.values
-                    .iter()
-                    .enumerate()
-                    .skip(1)
-                    .fold(first, |acc, (idx, &num)| {
-                        if get_bit_at(i, idx as u8) {
-                            acc * num
-                        } else {
-                            acc + num
-                        }
-                    });
-            total == self.total
-        })
-    }
-
-    fn solvable2(&self) -> bool {
-        let operators = [1, 2, 3];
+    fn solvable(&self, n_operators: i32) -> bool {
+        let operators: Vec<i32> = (0..n_operators).collect();
         let num_values = self.values.len();
         repeat_n(operators.iter(), num_values - 1)
             .multi_cartesian_product()
@@ -67,9 +38,9 @@ impl Equation {
                         .enumerate()
                         .skip(1)
                         .fold(first, |acc, (idx, &num)| {
-                            if *combo[idx - 1] == 1 {
+                            if *combo[idx - 1] == 0 {
                                 acc * num
-                            } else if *combo[idx - 1] == 2 {
+                            } else if *combo[idx - 1] == 1 {
                                 acc + num
                             } else {
                                 format!("{}{}", acc, num).parse().unwrap()
@@ -85,8 +56,7 @@ pub fn solution1() {
     let data: Vec<Equation> = input!().lines().map(Equation::from).collect();
     let score: i64 = data
         .iter()
-        .filter(|equation| equation.solvable())
-        .map(|equation| equation.total)
+        .filter_map(|eq| eq.solvable(2).then_some(eq.total))
         .sum();
     submit!(1, score);
 }
@@ -96,8 +66,7 @@ pub fn solution2() {
     let data: Vec<Equation> = input!().lines().map(Equation::from).collect();
     let score: i64 = data
         .iter()
-        .filter(|equation| equation.solvable2())
-        .map(|equation| equation.total)
+        .filter_map(|eq| eq.solvable(3).then_some(eq.total))
         .sum();
     submit!(2, score);
 }
