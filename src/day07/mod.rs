@@ -11,15 +11,9 @@ struct Equation {
 impl From<&str> for Equation {
     fn from(value: &str) -> Self {
         let re = Regex::new(r"(.+): (.+)").unwrap();
-        let captures = re.captures(value).unwrap();
-        let total: i64 = captures.get(1).unwrap().as_str().parse().unwrap();
-        let values: Vec<i64> = captures
-            .get(2)
-            .unwrap()
-            .as_str()
-            .split(' ')
-            .map(|num| num.parse().unwrap())
-            .collect();
+        let caps = re.captures(value).unwrap();
+        let total: i64 = caps[1].parse().unwrap();
+        let values: Vec<i64> = caps[2].split(' ').map(|n| n.parse().unwrap()).collect();
         Equation { values, total }
     }
 }
