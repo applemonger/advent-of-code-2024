@@ -29,7 +29,7 @@ impl Equation {
                 match operators[idx - 1] {
                     0 => acc * num,
                     1 => acc + num,
-                    _ => format!("{}{}", acc, num).parse().unwrap()
+                    _ => format!("{}{}", acc, num).parse().unwrap(),
                 }
             })
     }
@@ -39,24 +39,22 @@ impl Equation {
             .multi_cartesian_product()
             .any(|combo| self.solve(combo) == self.total)
     }
+
+    fn score(&self, n_operators: u8) -> Option<i64> {
+        self.solvable(n_operators).then_some(self.total)
+    }
 }
 
 #[aocd(2024, 7)]
 pub fn solution1() {
     let data: Vec<Equation> = input!().lines().map(Equation::from).collect();
-    let score: i64 = data
-        .par_iter()
-        .filter_map(|eq| eq.solvable(2).then_some(eq.total))
-        .sum();
+    let score: i64 = data.par_iter().filter_map(|eq| eq.score(2)).sum();
     submit!(1, score);
 }
 
 #[aocd(2024, 7)]
 pub fn solution2() {
     let data: Vec<Equation> = input!().lines().map(Equation::from).collect();
-    let score: i64 = data
-        .par_iter()
-        .filter_map(|eq| eq.solvable(3).then_some(eq.total))
-        .sum();
+    let score: i64 = data.par_iter().filter_map(|eq| eq.score(3)).sum();
     submit!(2, score);
 }
