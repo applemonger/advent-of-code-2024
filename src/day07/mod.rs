@@ -1,5 +1,6 @@
 use aocd::*;
 use itertools::{repeat_n, Itertools};
+use rayon::prelude::*;
 use regex::Regex;
 
 #[derive(Debug)]
@@ -49,7 +50,7 @@ impl Equation {
 pub fn solution1() {
     let data: Vec<Equation> = input!().lines().map(Equation::from).collect();
     let score: i64 = data
-        .iter()
+        .par_iter()
         .filter_map(|eq| eq.solvable(2).then_some(eq.total))
         .sum();
     submit!(1, score);
@@ -59,7 +60,7 @@ pub fn solution1() {
 pub fn solution2() {
     let data: Vec<Equation> = input!().lines().map(Equation::from).collect();
     let score: i64 = data
-        .iter()
+        .par_iter()
         .filter_map(|eq| eq.solvable(3).then_some(eq.total))
         .sum();
     submit!(2, score);
