@@ -26,8 +26,8 @@ impl Grid {
     }
 
     fn get(&self, xy: (i32, i32)) -> Option<char> {
-        let index = xy.1 * self.width + xy.0;
         if (0..self.width).contains(&xy.0) && (0..self.height).contains(&xy.1) {
+            let index = xy.1 * self.width + xy.0;
             let value = *self.values.get(index as usize).unwrap();
             Some(value)
         } else {
