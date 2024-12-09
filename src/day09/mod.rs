@@ -63,16 +63,19 @@ impl Diskmap {
 
     fn move_block(&mut self, to: usize, from: usize) {
         let diff: usize = self.blocks[to].length - self.blocks[from].length;
-        if diff == 0 {
-            self.blocks.swap(to, from);
-            self.blocks[to].moved = true;
-        } else if diff > 0 {
-            self.blocks[to].value = self.blocks[from].value;
-            self.blocks[to].length = self.blocks[from].length;
-            self.blocks[to].moved = true;
-            self.blocks[from].value = None;
-            let empty = Block { length: diff, value: None, moved: false };
-            self.blocks.insert(to+1, empty);
+        match diff {
+            0 => {
+                self.blocks.swap(to, from);
+                self.blocks[to].moved = true;
+            }
+            _ => {
+                self.blocks[to].value = self.blocks[from].value;
+                self.blocks[to].length = self.blocks[from].length;
+                self.blocks[to].moved = true;
+                self.blocks[from].value = None;
+                let empty = Block { length: diff, value: None, moved: false };
+                self.blocks.insert(to+1, empty);
+            }
         }
     }
 
@@ -92,7 +95,7 @@ impl Diskmap {
             //self.print();
             compressed = true;
             for i in (0..self.blocks.len()).rev() {
-                if !self.blocks[i].value.is_none() && !self.blocks[i].moved {
+                if self.blocks[i].value.is_some() && !self.blocks[i].moved {
                     let size = self.blocks[i].length;
                     if let Some(idx) = self.find_space(size) {
                         if idx < i {
