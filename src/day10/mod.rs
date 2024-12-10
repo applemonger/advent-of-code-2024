@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::collections::HashMap;
 
 use aocd::*;
 
@@ -34,14 +34,15 @@ impl Grid {
         }
     }
 
-    fn score(&self, mut nines: HashSet<(i32, i32)>, start: (i32, i32)) -> HashSet<(i32, i32)> {
+    fn score(&self, mut nines: HashMap<(i32, i32), i32>, start: (i32, i32)) -> HashMap<(i32, i32), i32> {
         let current = self.get(start).unwrap();
         for (u, v) in [(-1, 0), (1, 0), (0, 1), (0, -1)] {
             let (x, y) = (start.0 + u, start.1 + v);
             if let Some(num) = self.get((x, y)) {
                 if num == current + 1 {
                     if num == 9 {
-                        nines.insert((x, y));
+                        let rating = nines.entry((x, y)).or_default();
+                        *rating += 1;
                     } else {
                         nines = self.score(nines, (x, y));
                     }
@@ -49,23 +50,6 @@ impl Grid {
             }       
         }
         nines
-    }
-
-    fn rating(&self, mut score: i32, start: (i32, i32)) -> i32 {
-        let current = self.get(start).unwrap();
-        for (u, v) in [(-1, 0), (1, 0), (0, 1), (0, -1)] {
-            let (x, y) = (start.0 + u, start.1 + v);
-            if let Some(num) = self.get((x, y)) {
-                if num == current + 1 {
-                    if num == 9 {
-                        score += 1;
-                    } else {
-                        score += self.rating(0, (x, y));
-                    }
-                }
-            }
-        }
-        score
     }
 }
 
@@ -77,8 +61,7 @@ pub fn solution1() {
     for x in 0..grid.width {
         for y in 0..grid.height {
             if let Some(0) = grid.get((x, y)) {
-                let mut nines: HashSet<(i32, i32)> = HashSet::<(i32, i32)>::new();
-                nines = grid.score(nines, (x, y));
+                let nines = grid.score(HashMap::new(), (x, y));
                 score += nines.len();
             }
         }
@@ -94,7 +77,8 @@ pub fn solution2() {
     for x in 0..grid.width {
         for y in 0..grid.height {
             if let Some(0) = grid.get((x, y)) {
-                rating += grid.rating(0, (x, y));
+                let nines = grid.score(HashMap::new(), (x, y));
+                rating += nines.iter().map(|(_, v)| *v).sum::<i32>();
             }
         }
     }
