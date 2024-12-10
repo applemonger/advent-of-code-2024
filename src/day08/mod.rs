@@ -1,13 +1,12 @@
-use std::collections::{HashMap, HashSet};
 use aocd::*;
-
+use std::collections::{HashMap, HashSet};
 
 #[derive(Clone)]
 struct Grid {
     values: Vec<char>,
     width: i32,
     height: i32,
-    nodes: HashMap<char, HashSet<(i32, i32)>>
+    nodes: HashMap<char, HashSet<(i32, i32)>>,
 }
 
 impl Grid {
@@ -19,7 +18,7 @@ impl Grid {
             values,
             width,
             height,
-            nodes: HashMap::new()
+            nodes: HashMap::new(),
         };
         grid.find_nodes();
         grid

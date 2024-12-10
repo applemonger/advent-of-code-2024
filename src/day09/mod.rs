@@ -4,12 +4,18 @@ use aocd::*;
 struct Block {
     length: usize,
     value: Option<u64>,
-    moved: bool
+    moved: bool,
 }
 
 impl Block {
     fn fragment(&self) -> Vec<Block> {
-        (0..self.length).map(|_| Block { length: 1, value: self.value, moved: self.moved }).collect()
+        (0..self.length)
+            .map(|_| Block {
+                length: 1,
+                value: self.value,
+                moved: self.moved,
+            })
+            .collect()
     }
 
     fn score(&self, start: usize) -> u64 {
@@ -24,7 +30,7 @@ impl Block {
 
 #[derive(Debug)]
 struct Diskmap {
-    blocks: Vec<Block>
+    blocks: Vec<Block>,
 }
 
 impl From<&str> for Diskmap {
@@ -38,24 +44,33 @@ impl From<&str> for Diskmap {
                 used = !used;
                 let length = c.to_digit(10).unwrap() as usize;
                 if length > 0 {
-                    Some(Block { length, value: used.then_some(id), moved: false })
+                    Some(Block {
+                        length,
+                        value: used.then_some(id),
+                        moved: false,
+                    })
                 } else {
                     None
                 }
-            }).collect();
+            })
+            .collect();
         Diskmap { blocks }
     }
 }
 
 impl Diskmap {
     fn fragment(&mut self) {
-        self.blocks = self.blocks.iter().flat_map(|block| block.fragment()).collect();
+        self.blocks = self
+            .blocks
+            .iter()
+            .flat_map(|block| block.fragment())
+            .collect();
     }
 
     fn find_space(&self, min_size: usize) -> Option<usize> {
         for (i, block) in self.blocks.iter().enumerate() {
             if block.space() >= min_size {
-                return Some(i)
+                return Some(i);
             }
         }
         None
@@ -73,17 +88,21 @@ impl Diskmap {
                 self.blocks[to].length = self.blocks[from].length;
                 self.blocks[to].moved = true;
                 self.blocks[from].value = None;
-                let empty = Block { length: diff, value: None, moved: false };
-                self.blocks.insert(to+1, empty);
+                let empty = Block {
+                    length: diff,
+                    value: None,
+                    moved: false,
+                };
+                self.blocks.insert(to + 1, empty);
             }
         }
     }
 
     fn smooth(&mut self) {
         for i in 1..self.blocks.len() {
-            if self.blocks[i].value.is_none() && self.blocks[i-1].value.is_none() {
-                self.blocks[i].length += self.blocks[i-1].length;
-                self.blocks[i-1].length = 0;
+            if self.blocks[i].value.is_none() && self.blocks[i - 1].value.is_none() {
+                self.blocks[i].length += self.blocks[i - 1].length;
+                self.blocks[i - 1].length = 0;
             }
         }
         self.blocks.retain(|block| block.length > 0);
@@ -113,11 +132,10 @@ impl Diskmap {
 
     fn checksum(&self) -> u64 {
         let mut score = 0;
-        self.blocks.iter()
-            .fold(0_usize, |start, block| {
-                score += block.score(start);
-                start + block.length
-            });
+        self.blocks.iter().fold(0_usize, |start, block| {
+            score += block.score(start);
+            start + block.length
+        });
         score
     }
 }
