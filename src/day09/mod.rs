@@ -65,7 +65,7 @@ impl Diskmap {
             .collect();
     }
 
-    fn free_space(&mut self) -> Vec<(usize, usize)> {
+    fn get_free_space(&mut self) -> Vec<(usize, usize)> {
         self.blocks.sort_by_key(|block| block.addr);
         self.blocks
             .windows(2)
@@ -77,7 +77,7 @@ impl Diskmap {
     }
 
     fn compress(&mut self) {
-        let mut free_space = self.free_space();
+        let mut free_space = self.get_free_space();
         for block in self.blocks.iter_mut().rev() {
             'search: for space in free_space.iter_mut() {
                 if space.0 < block.addr && block.length <= space.1 {
