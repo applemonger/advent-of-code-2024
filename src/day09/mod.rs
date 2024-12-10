@@ -2,29 +2,28 @@ use aocd::*;
 
 #[derive(Debug, Clone)]
 struct Block {
+    addr: usize,
     length: usize,
-    value: Option<u64>,
-    moved: bool,
+    value: usize,
 }
 
 impl Block {
     fn fragment(&self) -> Vec<Block> {
         (0..self.length)
-            .map(|_| Block {
+            .map(|i| Block {
+                addr: self.addr + i,
                 length: 1,
                 value: self.value,
-                moved: self.moved,
             })
             .collect()
     }
 
-    fn score(&self, start: usize) -> u64 {
-        let value = self.value.unwrap_or_default();
-        (0..self.length).map(|i| (start + i) as u64 * value).sum()
+    fn score(&self) -> usize {
+        (0..self.length).map(|i| (self.addr + i) * self.value).sum()
     }
 
-    fn space(&self) -> usize {
-        self.value.is_none() as usize * self.length
+    fn end(&self) -> usize {
+        self.addr + self.length
     }
 }
 
@@ -36,22 +35,21 @@ struct Diskmap {
 impl From<&str> for Diskmap {
     fn from(value: &str) -> Self {
         let mut used = false;
-        let mut id: u64 = 0;
+        let mut start = 0;
+        let mut id: usize = 0;
         let blocks: Vec<Block> = value
             .chars()
             .flat_map(|c| {
-                id += used as u64;
+                id += used as usize;
                 used = !used;
                 let length = c.to_digit(10).unwrap() as usize;
-                if length > 0 {
-                    Some(Block {
-                        length,
-                        value: used.then_some(id),
-                        moved: false,
-                    })
-                } else {
-                    None
-                }
+                let block = Block {
+                    addr: start,
+                    length,
+                    value: id,
+                };
+                start += length;
+                (length > 0 && used).then_some(block)
             })
             .collect();
         Diskmap { blocks }
@@ -67,76 +65,32 @@ impl Diskmap {
             .collect();
     }
 
-    fn find_space(&self, min_size: usize) -> Option<usize> {
-        for (i, block) in self.blocks.iter().enumerate() {
-            if block.space() >= min_size {
-                return Some(i);
-            }
-        }
-        None
-    }
-
-    fn move_block(&mut self, to: usize, from: usize) {
-        let diff: usize = self.blocks[to].length - self.blocks[from].length;
-        match diff {
-            0 => {
-                self.blocks.swap(to, from);
-                self.blocks[to].moved = true;
-            }
-            _ => {
-                self.blocks[to].value = self.blocks[from].value;
-                self.blocks[to].length = self.blocks[from].length;
-                self.blocks[to].moved = true;
-                self.blocks[from].value = None;
-                let empty = Block {
-                    length: diff,
-                    value: None,
-                    moved: false,
-                };
-                self.blocks.insert(to + 1, empty);
-            }
-        }
-    }
-
-    fn smooth(&mut self) {
-        for i in 1..self.blocks.len() {
-            if self.blocks[i].value.is_none() && self.blocks[i - 1].value.is_none() {
-                self.blocks[i].length += self.blocks[i - 1].length;
-                self.blocks[i - 1].length = 0;
-            }
-        }
-        self.blocks.retain(|block| block.length > 0);
+    fn free_space(&mut self) -> Vec<(usize, usize)> {
+        self.blocks.sort_by_key(|block| block.addr);
+        self.blocks.windows(2).filter_map(|pair| {
+            let space = pair[1].addr - pair[0].end();
+            (space > 0).then_some((pair[0].end(), space))
+        }).collect()
     }
 
     fn compress(&mut self) {
-        let mut compressed = false;
-        'compression: while !compressed {
-            //self.print();
-            compressed = true;
-            for i in (0..self.blocks.len()).rev() {
-                if self.blocks[i].value.is_some() && !self.blocks[i].moved {
-                    let size = self.blocks[i].length;
-                    if let Some(idx) = self.find_space(size) {
-                        if idx < i {
-                            compressed = false;
-                            self.move_block(idx, i);
-                            self.smooth();
-                            continue 'compression;
-                        }
-                    }
+        let mut free_space = self.free_space();
+        for i in (0..self.blocks.len()).rev() {
+            let addr = self.blocks[i].addr;
+            let size = self.blocks[i].length;
+            'search: for j in 0..free_space.len() {
+                let (start, space) = free_space[j];
+                if start < addr && size <= space {
+                    self.blocks[i].addr = start;
+                    free_space[j] = (self.blocks[i].end(), space - size);
+                    break 'search;
                 }
-                self.blocks[i].moved = true;
             }
         }
     }
 
-    fn checksum(&self) -> u64 {
-        let mut score = 0;
-        self.blocks.iter().fold(0_usize, |start, block| {
-            score += block.score(start);
-            start + block.length
-        });
-        score
+    fn checksum(&self) -> usize {
+        self.blocks.iter().map(|block| block.score()).sum()
     }
 }
 
