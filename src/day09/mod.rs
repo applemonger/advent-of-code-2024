@@ -66,7 +66,6 @@ impl Diskmap {
     }
 
     fn get_free_space(&mut self) -> Vec<(usize, usize)> {
-        self.blocks.sort_by_key(|block| block.addr);
         self.blocks
             .windows(2)
             .filter_map(|pair| {
