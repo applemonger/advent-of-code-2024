@@ -38,18 +38,15 @@ impl Grid {
         let current = self.get(start).unwrap();
         for (u, v) in [(-1, 0), (1, 0), (0, 1), (0, -1)] {
             let (x, y) = (start.0 + u, start.1 + v);
-            match self.get((x, y)) {
-                Some(num) => {
-                    if num == current + 1 {
-                        if num == 9 {
-                            nines.insert((x, y));
-                        } else {
-                            nines = self.score(nines, (x, y));
-                        }
+            if let Some(num) = self.get((x, y)) {
+                if num == current + 1 {
+                    if num == 9 {
+                        nines.insert((x, y));
+                    } else {
+                        nines = self.score(nines, (x, y));
                     }
                 }
-                None => {}
-            }
+            }       
         }
         nines
     }
@@ -58,17 +55,14 @@ impl Grid {
         let current = self.get(start).unwrap();
         for (u, v) in [(-1, 0), (1, 0), (0, 1), (0, -1)] {
             let (x, y) = (start.0 + u, start.1 + v);
-            match self.get((x, y)) {
-                Some(num) => {
-                    if num == current + 1 {
-                        if num == 9 {
-                            score += 1;
-                        } else {
-                            score += self.rating(0, (x, y));
-                        }
+            if let Some(num) = self.get((x, y)) {
+                if num == current + 1 {
+                    if num == 9 {
+                        score += 1;
+                    } else {
+                        score += self.rating(0, (x, y));
                     }
                 }
-                None => {}
             }
         }
         score
