@@ -1,4 +1,5 @@
 use aocd::*;
+use itertools::Itertools;
 
 #[derive(Debug, Clone)]
 struct Block {
@@ -34,22 +35,21 @@ struct Diskmap {
 
 impl From<&str> for Diskmap {
     fn from(value: &str) -> Self {
-        let mut used = false;
         let mut start = 0;
-        let mut id: usize = 0;
         let blocks: Vec<Block> = value
             .chars()
-            .flat_map(|c| {
-                id += used as usize;
-                used = !used;
-                let length = c.to_digit(10).unwrap() as usize;
-                let block = Block {
-                    addr: start,
-                    length,
-                    value: id,
-                };
-                start += length;
-                (length > 0 && used).then_some(block)
+            .chunks(2)
+            .into_iter()
+            .enumerate()
+            .map(|(i, mut chunk)| {
+                let used = chunk.next().unwrap().to_digit(10).unwrap() as usize;
+                let free = chunk.next().unwrap_or('0').to_digit(10).unwrap() as usize;
+                start += used + free;
+                Block {
+                    addr: start - used - free,
+                    length: used,
+                    value: i,
+                }
             })
             .collect();
         Diskmap { blocks }
