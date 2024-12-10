@@ -78,10 +78,10 @@ impl Diskmap {
     fn compress(&mut self) {
         let mut free_space = self.get_free_space();
         for block in self.blocks.iter_mut().rev() {
-            'search: for space in free_space.iter_mut() {
-                if space.0 < block.addr && block.length <= space.1 {
-                    block.addr = space.0;
-                    *space = (block.end(), space.1 - block.length);
+            'search: for (addr, space) in free_space.iter_mut() {
+                if *addr < block.addr && block.length <= *space {
+                    block.addr = *addr;
+                    (*addr, *space) = (block.end(), *space - block.length);
                     break 'search;
                 }
             }
