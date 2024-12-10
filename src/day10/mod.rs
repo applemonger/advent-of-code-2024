@@ -4,18 +4,18 @@ use aocd::*;
 
 #[derive(Clone)]
 struct Grid {
-    values: HashMap<(i32, i32), Option<usize>>,
+    values: HashMap<(i32, i32), usize>,
 }
 
 impl Grid {
     fn new(input: String) -> Grid {
-        let values: HashMap<(i32, i32), Option<usize>> = input
+        let values: HashMap<(i32, i32), usize> = input
             .lines()
             .enumerate()
             .flat_map(|(y, line)| {
-                line.chars().enumerate().map(move |(x, c)| {
-                    let value = c.to_digit(10);
-                    ((x as i32, y as i32), value.map(|num| num as usize))
+                line.chars().enumerate().filter_map(move |(x, c)| {
+                    let value = c.to_digit(10)?;
+                    Some(((x as i32, y as i32), value as usize))
                 })
             })
             .collect();
@@ -23,7 +23,7 @@ impl Grid {
     }
 
     fn get(&self, xy: (i32, i32)) -> Option<usize> {
-        *self.values.get(&xy)?
+        self.values.get(&xy).copied()
     }
 
     fn score(
@@ -53,8 +53,8 @@ pub fn solution1() {
     let data = input!();
     let grid = Grid::new(data);
     let mut score = 0;
-    for (&position, value) in grid.values.iter() {
-        if let Some(0) = value {
+    for (&position, &value) in grid.values.iter() {
+        if value == 0 {
             let nines = grid.score(HashMap::new(), position);
             score += nines.len();
         }
@@ -67,8 +67,8 @@ pub fn solution2() {
     let data = input!();
     let grid = Grid::new(data);
     let mut rating = 0;
-    for (&position, value) in grid.values.iter() {
-        if let Some(0) = value {
+    for (&position, &value) in grid.values.iter() {
+        if value == 0 {
             let nines = grid.score(HashMap::new(), position);
             rating += nines.values().copied().sum::<i32>();
         }
