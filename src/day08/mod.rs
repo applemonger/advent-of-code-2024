@@ -3,44 +3,34 @@ use std::collections::{HashMap, HashSet};
 
 #[derive(Clone)]
 struct Grid {
-    values: Vec<char>,
-    width: i32,
-    height: i32,
+    values: HashMap<(i32, i32), char>,
     nodes: HashMap<char, HashSet<(i32, i32)>>,
 }
 
 impl Grid {
     fn new(input: String) -> Grid {
-        let values: Vec<char> = input.lines().flat_map(|s| s.chars()).collect();
-        let width = input.lines().next().unwrap().len() as i32;
-        let height = values.len() as i32 / width;
-        let mut grid = Grid {
-            values,
-            width,
-            height,
-            nodes: HashMap::new(),
-        };
+        let values: HashMap<(i32, i32), char> = input
+            .lines()
+            .enumerate()
+            .flat_map(|(y, line)| {
+                line.chars()
+                    .enumerate()
+                    .map(move |(x, c)| ((x as i32, y as i32), c))
+            })
+            .collect();
+        let mut grid = Grid { values, nodes: HashMap::new() };
         grid.find_nodes();
         grid
     }
 
     fn get(&self, xy: (i32, i32)) -> Option<char> {
-        if (0..self.width).contains(&xy.0) && (0..self.height).contains(&xy.1) {
-            let index = xy.1 * self.width + xy.0;
-            let value = *self.values.get(index as usize).unwrap();
-            Some(value)
-        } else {
-            None
-        }
+        self.values.get(&xy).copied()
     }
 
     fn find_nodes(&mut self) {
-        for y in 0..self.height {
-            for x in 0..self.width {
-                let c = self.get((x, y)).unwrap();
-                if c != '.' {
-                    self.nodes.entry(c).or_default().insert((x, y));
-                }
+        for (&position, &c) in self.values.iter() {
+            if c != '.' {
+                self.nodes.entry(c).or_default().insert(position);
             }
         }
     }
@@ -48,8 +38,8 @@ impl Grid {
     fn find_anti_nodes(&self) -> HashSet<(i32, i32)> {
         let mut antinodes = HashSet::<(i32, i32)>::new();
         for (_, nodes) in self.nodes.iter() {
-            for (x, y) in nodes.clone().into_iter() {
-                for (u, v) in nodes.clone().into_iter() {
+            for (x, y) in nodes.iter() {
+                for (u, v) in nodes.iter() {
                     if (x, y) != (u, v) {
                         let diff = (u - x, v - y);
                         let antinode = (x - diff.0, y - diff.1);
@@ -66,8 +56,8 @@ impl Grid {
     fn find_harmonic_anti_nodes(&self) -> HashSet<(i32, i32)> {
         let mut antinodes = HashSet::<(i32, i32)>::new();
         for (_, nodes) in self.nodes.iter() {
-            for (x, y) in nodes.clone().into_iter() {
-                for (u, v) in nodes.clone().into_iter() {
+            for (x, y) in nodes.iter() {
+                for (u, v) in nodes.iter() {
                     if (x, y) != (u, v) {
                         let diff = (u - x, v - y);
                         let mut antinode_1 = (x - diff.0, y - diff.1);
