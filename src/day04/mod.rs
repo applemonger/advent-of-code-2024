@@ -1,5 +1,5 @@
-use std::collections::HashMap;
 use aocd::*;
+use std::collections::HashMap;
 
 struct Grid {
     values: HashMap<(i32, i32), char>,
@@ -11,9 +11,9 @@ impl Grid {
             .lines()
             .enumerate()
             .flat_map(|(y, line)| {
-                line.chars().enumerate().map(move |(x, c)| {
-                    ((x as i32, y as i32), c)
-                })
+                line.chars()
+                    .enumerate()
+                    .map(move |(x, c)| ((x as i32, y as i32), c))
             })
             .collect();
         Grid { values }
