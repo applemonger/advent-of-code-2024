@@ -67,22 +67,22 @@ impl Diskmap {
 
     fn free_space(&mut self) -> Vec<(usize, usize)> {
         self.blocks.sort_by_key(|block| block.addr);
-        self.blocks.windows(2).filter_map(|pair| {
-            let space = pair[1].addr - pair[0].end();
-            (space > 0).then_some((pair[0].end(), space))
-        }).collect()
+        self.blocks
+            .windows(2)
+            .filter_map(|pair| {
+                let space = pair[1].addr - pair[0].end();
+                (space > 0).then_some((pair[0].end(), space))
+            })
+            .collect()
     }
 
     fn compress(&mut self) {
         let mut free_space = self.free_space();
-        for i in (0..self.blocks.len()).rev() {
-            let addr = self.blocks[i].addr;
-            let size = self.blocks[i].length;
-            'search: for j in 0..free_space.len() {
-                let (start, space) = free_space[j];
-                if start < addr && size <= space {
-                    self.blocks[i].addr = start;
-                    free_space[j] = (self.blocks[i].end(), space - size);
+        for block in self.blocks.iter_mut().rev() {
+            'search: for space in free_space.iter_mut() {
+                if space.0 < block.addr && block.length <= space.1 {
+                    block.addr = space.0;
+                    *space = (block.end(), space.1 - block.length);
                     break 'search;
                 }
             }
