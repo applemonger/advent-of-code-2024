@@ -18,7 +18,10 @@ impl Grid {
                     .map(move |(x, c)| ((x as i32, y as i32), c))
             })
             .collect();
-        let mut grid = Grid { values, nodes: HashMap::new() };
+        let mut grid = Grid {
+            values,
+            nodes: HashMap::new(),
+        };
         grid.find_nodes();
         grid
     }
