@@ -28,30 +28,12 @@ fn blink_stone(stone: u64, blinks: u64) -> u64 {
 
 #[aocd(2024, 11)]
 pub fn solution1() {
-    let stones: Vec<u64> = input!()
-        .split(' ')
-        .map(|num| num.parse().unwrap())
-        .collect();
-    submit!(
-        1,
-        stones
-            .iter()
-            .map(|stone| blink_stone(*stone, 25))
-            .sum::<u64>()
-    );
+    let stones: Vec<u64> = input!().split(' ').map(|n| n.parse().unwrap()).collect();
+    submit!(1, stones.iter().map(|x| blink_stone(*x, 25)).sum::<u64>());
 }
 
 #[aocd(2024, 11)]
 pub fn solution2() {
-    let stones: Vec<u64> = input!()
-        .split(' ')
-        .map(|num| num.parse().unwrap())
-        .collect();
-    submit!(
-        2,
-        stones
-            .iter()
-            .map(|stone| blink_stone(*stone, 75))
-            .sum::<u64>()
-    );
+    let stones: Vec<u64> = input!().split(' ').map(|n| n.parse().unwrap()).collect();
+    submit!(2, stones.iter().map(|x| blink_stone(*x, 75)).sum::<u64>());
 }
