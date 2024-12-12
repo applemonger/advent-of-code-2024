@@ -40,10 +40,6 @@ struct Side {
 }
 
 impl Side {
-    fn vertical(&self) -> bool {
-        self.direction.1 != 0
-    }
-
     fn is_connected(&self, other: &Side, sides: &HashSet<Side>) -> bool {
         if self.position == other.position {
             return false;
@@ -99,14 +95,11 @@ impl Region {
 
     fn discounted_cost(&self) -> usize {
         let mut sides: HashSet<Side> = self.gardens.iter().flat_map(|garden| garden.sides(&self)).collect();
-        //println!("{} {}", self.plant, sides.len());
         let all_sides = sides.clone();
         let mut count = 0;
         while let Some(side) = sides.iter().next().copied() {
-            //println!("{} {:?}", self.plant, side);
             for other in all_sides.clone().iter().copied() {
                 if side.is_connected(&other, &all_sides) {
-                    //println!("-> {:?}", other);
                     sides.remove(&other);
                 }
             }
