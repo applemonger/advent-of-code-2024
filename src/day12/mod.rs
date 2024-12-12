@@ -94,13 +94,13 @@ impl Region {
     }
 
     fn discounted_cost(&self) -> usize {
-        let mut sides: HashSet<Side> = self.gardens.iter().flat_map(|garden| garden.sides(&self)).collect();
+        let mut sides: HashSet<Side> = self.gardens.iter().flat_map(|garden| garden.sides(self)).collect();
         let all_sides = sides.clone();
         let mut count = 0;
         while let Some(side) = sides.iter().next().copied() {
-            for other in all_sides.clone().iter().copied() {
-                if side.is_connected(&other, &all_sides) {
-                    sides.remove(&other);
+            for other in all_sides.iter() {
+                if side.is_connected(other, &all_sides) {
+                    sides.remove(other);
                 }
             }
             sides.remove(&side);
@@ -109,13 +109,13 @@ impl Region {
         count * self.gardens.len()
     }
 
-    fn build(&mut self, current: Garden, grid: &mut Grid) {
+    fn build(&mut self, current: Garden, gardens: &mut HashMap<Garden, char>) {
         self.gardens.insert(current);
-        grid.values.remove(&current);
-        current.neighbors().iter().for_each(|&neighbor| {
-            if let Some(c) = grid.get(neighbor) {
-                if c == self.plant && !self.gardens.contains(&neighbor) {
-                    self.build(neighbor, grid);
+        gardens.remove(&current);
+        current.neighbors().iter().for_each(|neighbor| {
+            if let Some(&c) = gardens.get(neighbor) {
+                if c == self.plant && !self.gardens.contains(neighbor) {
+                    self.build(*neighbor, gardens);
                 }
             }
         });
@@ -141,15 +141,12 @@ impl Grid {
         Grid { values }
     }
 
-    fn get(&self, garden: Garden) -> Option<char> {
-        self.values.get(&garden).copied()
-    }
-
-    fn to_regions(mut self) -> Vec<Region> {
+    fn regions(&mut self) -> Vec<Region> {
         let mut regions = Vec::<Region>::new();
-        while let Some((garden, plant)) = self.values.iter().next() {
+        let mut values = self.values.clone();
+        while let Some((garden, plant)) = values.iter().next() {
             let mut region = Region::new(*plant);
-            region.build(*garden, &mut self);
+            region.build(*garden, &mut values);
             regions.push(region);
         }
         regions
@@ -159,7 +156,7 @@ impl Grid {
 #[aocd(2024, 12)]
 pub fn solution1() {
     let data = input!();
-    let regions = Grid::new(data).to_regions();
+    let regions = Grid::new(data).regions();
     let score = regions.iter().map(|region| region.cost()).sum::<usize>();
     submit!(1, score);
 }
@@ -167,7 +164,7 @@ pub fn solution1() {
 #[aocd(2024, 12)]
 pub fn solution2() {
     let data = input!();
-    let regions = Grid::new(data).to_regions();
+    let regions = Grid::new(data).regions();
     let score = regions.iter().map(|region| region.discounted_cost()).sum::<usize>();
     submit!(2, score);
 }
