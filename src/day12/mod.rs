@@ -31,18 +31,13 @@ impl Region {
 
     fn corners(&self, point: &(i32, i32)) -> usize {
         let mut corners = 0;
-        for direction in [(-1, 0), (1, 0), (0, 1), (0, -1)] {
-            let a = (point.0 + direction.0, point.1 + direction.1);
-            let b = (point.0 - direction.1, point.1 + direction.0);
-            let c = (
-                point.0 + direction.0 - direction.1,
-                point.1 + direction.1 + direction.0,
-            );
+        for xy in [(-1, 0), (1, 0), (0, 1), (0, -1)] {
+            let a = (point.0 + xy.0, point.1 + xy.1);
+            let b = (point.0 - xy.1, point.1 + xy.0);
+            let c = (point.0 + xy.0 - xy.1, point.1 + xy.1 + xy.0);
             let outer = !self.has(a) && !self.has(b);
             let inner = self.has(a) && self.has(b) && !self.has(c);
-            if inner || outer {
-                corners += 1;
-            }
+            corners += (inner || outer) as usize;
         }
         corners
     }
