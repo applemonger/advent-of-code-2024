@@ -66,12 +66,10 @@ fn regions(input: String) -> Vec<Region> {
         .collect();
 
     let mut regions = Vec::<Region>::new();
-    while let Some((garden, plant)) = values.iter().next() {
-        let mut region = Region {
-            plant: *plant,
-            gardens: HashSet::new(),
-        };
-        region.build(*garden, &mut values);
+    while let Some((&garden, &plant)) = values.iter().next() {
+        let gardens = HashSet::new();
+        let mut region = Region { plant, gardens };
+        region.build(garden, &mut values);
         regions.push(region);
     }
     regions
