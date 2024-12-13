@@ -18,7 +18,8 @@ impl From<&str> for Machine {
             a: (caps[0], caps[1]),
             b: (caps[2], caps[3]),
             prize: (caps[4], caps[5]),
-            ..Default::default()
+            upper: 100.,
+            extra: 0.,
         }
     }
 }
@@ -47,8 +48,7 @@ impl Machine {
 #[aocd(2024, 13)]
 pub fn solution1() {
     let data = input!();
-    let mut machines: Vec<Machine> = data.split("\n\n").map(Machine::from).collect();
-    machines.iter_mut().for_each(|machine| machine.upper = 100.);
+    let machines: Vec<Machine> = data.split("\n\n").map(Machine::from).collect();
     let tokens: f64 = machines.iter().filter_map(|machine| machine.solve()).sum();
     submit!(1, tokens);
 }
@@ -57,12 +57,10 @@ pub fn solution1() {
 pub fn solution2() {
     let data = input!();
     let mut machines: Vec<Machine> = data.split("\n\n").map(Machine::from).collect();
-    machines
-        .iter_mut()
-        .for_each(|machine| machine.upper = f64::MAX);
-    machines
-        .iter_mut()
-        .for_each(|machine| machine.extra = 10000000000000.);
+    machines.iter_mut().for_each(|machine| {
+        machine.upper = f64::MAX;
+        machine.extra = 1e13;
+    });
     let tokens: f64 = machines.iter().filter_map(|machine| machine.solve()).sum();
     submit!(2, tokens);
 }
