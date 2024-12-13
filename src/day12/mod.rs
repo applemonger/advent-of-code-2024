@@ -26,7 +26,10 @@ impl Garden {
         for direction in [(-1, 0), (1, 0), (0, 1), (0, -1)] {
             let neighbor = self.offset(direction);
             if !region.gardens.contains(&neighbor) {
-                sides.insert(Side { position: *self, direction });
+                sides.insert(Side {
+                    position: *self,
+                    direction,
+                });
             }
         }
         sides
@@ -36,7 +39,7 @@ impl Garden {
 #[derive(Debug, Hash, Clone, Copy, PartialEq, Eq)]
 struct Side {
     position: Garden,
-    direction: (i32, i32)
+    direction: (i32, i32),
 }
 
 impl Side {
@@ -48,7 +51,10 @@ impl Side {
             let y_max = self.position.y.max(other.position.y);
             for y in y_min..y_max {
                 let garden = Garden::new(self.position.x, y);
-                let side = Side { position: garden, direction: self.direction };
+                let side = Side {
+                    position: garden,
+                    direction: self.direction,
+                };
                 if !sides.contains(&side) {
                     return false;
                 }
@@ -58,7 +64,10 @@ impl Side {
             let x_max = self.position.x.max(other.position.x);
             for x in x_min..x_max {
                 let garden = Garden::new(x, self.position.y);
-                let side = Side { position: garden, direction: self.direction };
+                let side = Side {
+                    position: garden,
+                    direction: self.direction,
+                };
                 if !sides.contains(&side) {
                     return false;
                 }
@@ -94,7 +103,11 @@ impl Region {
     }
 
     fn discounted_cost(&self) -> usize {
-        let mut sides: HashSet<Side> = self.gardens.iter().flat_map(|garden| garden.sides(self)).collect();
+        let mut sides: HashSet<Side> = self
+            .gardens
+            .iter()
+            .flat_map(|garden| garden.sides(self))
+            .collect();
         let all_sides = sides.clone();
         let mut count = 0;
         while let Some(side) = sides.iter().next().copied() {
@@ -165,6 +178,9 @@ pub fn solution1() {
 pub fn solution2() {
     let data = input!();
     let regions = Grid::new(data).regions();
-    let score = regions.iter().map(|region| region.discounted_cost()).sum::<usize>();
+    let score = regions
+        .iter()
+        .map(|region| region.discounted_cost())
+        .sum::<usize>();
     submit!(2, score);
 }
