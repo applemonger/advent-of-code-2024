@@ -52,10 +52,8 @@ impl Region {
         gardens.remove(&current);
         for offset in [(-1, 0), (1, 0), (0, 1), (0, -1)] {
             let neighbor = (current.0 + offset.0, current.1 + offset.1);
-            if let Some(&c) = gardens.get(&neighbor) {
-                if c == self.plant && !self.gardens.contains(&neighbor) {
-                    self.build(neighbor, gardens);
-                }
+            if gardens.get(&neighbor) == Some(&self.plant) && !self.has(neighbor) {
+                self.build(neighbor, gardens);
             }
         }
     }
