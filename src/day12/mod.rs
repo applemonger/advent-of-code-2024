@@ -1,9 +1,8 @@
 use aocd::*;
 use std::collections::{HashMap, HashSet};
 
-#[derive(Debug)]
+#[derive(Default, Debug)]
 struct Region {
-    plant: char,
     gardens: HashSet<(i32, i32)>,
 }
 
@@ -30,25 +29,26 @@ impl Region {
     }
 
     fn corners(&self, point: &(i32, i32)) -> usize {
-        let mut corners = 0;
-        for xy in [(-1, 0), (1, 0), (0, 1), (0, -1)] {
-            let a = (point.0 + xy.0, point.1 + xy.1);
-            let b = (point.0 - xy.1, point.1 + xy.0);
-            let c = (point.0 + xy.0 - xy.1, point.1 + xy.1 + xy.0);
-            let outer = !self.has(a) && !self.has(b);
-            let inner = self.has(a) && self.has(b) && !self.has(c);
-            corners += (inner || outer) as usize;
-        }
-        corners
+        [(-1, 0), (1, 0), (0, 1), (0, -1)]
+            .iter()
+            .map(|(x, y)| {
+                let a = (point.0 + x, point.1 + y);
+                let b = (point.0 - y, point.1 + x);
+                let c = (point.0 + x - y, point.1 + y + x);
+                let outer = !self.has(a) && !self.has(b);
+                let inner = self.has(a) && self.has(b) && !self.has(c);
+                (inner || outer) as usize
+            })
+            .sum()
     }
 
-    fn build(&mut self, current: (i32, i32), gardens: &mut HashMap<(i32, i32), char>) {
+    fn build(&mut self, plant: char, current: (i32, i32), gardens: &mut HashMap<(i32, i32), char>) {
         self.gardens.insert(current);
         gardens.remove(&current);
         for offset in [(-1, 0), (1, 0), (0, 1), (0, -1)] {
             let neighbor = (current.0 + offset.0, current.1 + offset.1);
-            if gardens.get(&neighbor) == Some(&self.plant) && !self.has(neighbor) {
-                self.build(neighbor, gardens);
+            if gardens.get(&neighbor) == Some(&plant) && !self.has(neighbor) {
+                self.build(plant, neighbor, gardens);
             }
         }
     }
@@ -67,9 +67,8 @@ fn regions(input: String) -> Vec<Region> {
 
     let mut regions = Vec::<Region>::new();
     while let Some((&garden, &plant)) = values.iter().next() {
-        let gardens = HashSet::new();
-        let mut region = Region { plant, gardens };
-        region.build(garden, &mut values);
+        let mut region = Region::default();
+        region.build(plant, garden, &mut values);
         regions.push(region);
     }
     regions
