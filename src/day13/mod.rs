@@ -31,13 +31,9 @@ impl Machine {
         let (xp, yp) = (self.prize.0 + self.extra, self.prize.1 + self.extra);
         let b = (xp * ya - yp * xa) / (xb * ya - yb * xa);
         let a = (xp - b * xb) / xa;
-        let out_of_bounds = self.out_of_bounds(a) || self.out_of_bounds(b);
+        let out_of_bounds = a < 0. || a > self.upper || b < 0. || b > self.upper;
         let within_epsilon = self.within_epsilon(a) && self.within_epsilon(b);
         (!out_of_bounds && within_epsilon).then_some(a * 3.0 + b)
-    }
-
-    fn out_of_bounds(&self, num: f64) -> bool {
-        num < 0. || num > self.upper
     }
 
     fn within_epsilon(&self, num: f64) -> bool {
