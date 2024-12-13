@@ -7,7 +7,7 @@ struct Machine {
     b: (f64, f64),
     prize: (f64, f64),
     upper: f64,
-    extra: f64
+    extra: f64,
 }
 
 impl From<&str> for Machine {
@@ -57,8 +57,12 @@ pub fn solution1() {
 pub fn solution2() {
     let data = input!();
     let mut machines: Vec<Machine> = data.split("\n\n").map(Machine::from).collect();
-    machines.iter_mut().for_each(|machine| machine.upper = f64::MAX);
-    machines.iter_mut().for_each(|machine| machine.extra = 10000000000000.);
+    machines
+        .iter_mut()
+        .for_each(|machine| machine.upper = f64::MAX);
+    machines
+        .iter_mut()
+        .for_each(|machine| machine.extra = 10000000000000.);
     let tokens: f64 = machines.iter().filter_map(|machine| machine.solve()).sum();
     submit!(2, tokens);
 }
