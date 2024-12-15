@@ -115,7 +115,8 @@ impl Robots {
     }
 
     fn regions(&self) -> Vec<Region> {
-        let mut points: HashSet<(i32, i32)> = self.robots.iter().map(|robot| robot.position).collect();
+        let mut points: HashSet<(i32, i32)> =
+            self.robots.iter().map(|robot| robot.position).collect();
         let mut regions = Vec::<Region>::new();
         while let Some(&garden) = points.iter().next() {
             let mut region = Region::default();
@@ -128,7 +129,7 @@ impl Robots {
 
 #[derive(Default)]
 struct Region {
-    points: HashSet<(i32, i32)>
+    points: HashSet<(i32, i32)>,
 }
 
 impl Region {
@@ -173,7 +174,7 @@ pub fn solution2() {
 
     // Get number of regions within each step
     let mut regions = Vec::new();
-    for i in 0..period {
+    for _ in 0..period {
         robots.forward(1);
         let n: usize = robots.regions().len();
         regions.push(n as f64);
@@ -181,7 +182,8 @@ pub fn solution2() {
 
     // Look for outliers
     let mean: f64 = regions.iter().sum::<f64>() / regions.len() as f64;
-    let sd: f64 = (regions.iter().map(|x| (x - mean).powi(2)).sum::<f64>() / regions.len() as f64).sqrt();
+    let sd: f64 =
+        (regions.iter().map(|x| (x - mean).powi(2)).sum::<f64>() / regions.len() as f64).sqrt();
     let outliers: Vec<usize> = regions
         .iter()
         .enumerate()
