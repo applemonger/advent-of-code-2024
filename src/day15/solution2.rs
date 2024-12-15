@@ -15,29 +15,20 @@ impl From<&str> for Map {
             .flat_map(|(y, line)| {
                 line.chars()
                     .enumerate()
-                    .filter(|&(_, c)| c == '#' || c == 'O' || c == '@')
+                    .filter(|&(_, c)| c != '.')
                     .flat_map(move |(x, c)| {
-                        if c == '@' {
-                            vec![((x as i32 * 2, y as i32), c)]
-                        } else if c == 'O' {
-                            vec![
-                                ((x as i32 * 2, y as i32), '['),
-                                ((2 * x as i32 + 1, y as i32), ']'),
-                            ]
-                        } else {
-                            vec![
-                                ((x as i32 * 2, y as i32), c),
-                                ((2 * x as i32 + 1, y as i32), c),
-                            ]
+                        let (x, y) = (x as i32, y as i32);
+                        match c {
+                            '@' => vec![((x * 2, y), c)],
+                            'O' => vec![((x * 2, y), '['), ((2 * x + 1, y), ']')],
+                            _ => vec![((x * 2, y), c), ((2 * x + 1, y), c)],
                         }
                     })
             })
             .collect();
         let mut robot = (0, 0);
-        for (&position, &c) in map.iter() {
-            if c == '@' {
-                robot = position;
-            }
+        if let Some((&position, _)) = map.iter().find(|&(_, v)| *v == '@') {
+            robot = position;
         }
         map.remove(&robot);
         Map { robot, map }
@@ -45,8 +36,8 @@ impl From<&str> for Map {
 }
 
 impl Map {
-    fn is_empty(&self, position: (i32, i32)) -> bool {
-        self.map.get(&position).is_none()
+    fn get(&self, position: (i32, i32)) -> char {
+        *self.map.get(&position).unwrap_or(&'.')
     }
 
     fn can_move(&self, box_group: &HashSet<(i32, i32)>, movement: (i32, i32)) -> bool {
@@ -65,6 +56,7 @@ impl Map {
                 )
             })
             .collect();
+        self.map.retain(|k, _| !box_group.contains(k));
         for pos in box_group {
             self.map.remove(&pos);
         }
@@ -78,22 +70,17 @@ impl Map {
         mut current: HashSet<(i32, i32)>,
     ) -> HashSet<(i32, i32)> {
         current.insert(position);
-        let tile = self.map.get(&position).unwrap();
-        let adjacent = if *tile == '[' {
-            (position.0 + 1, position.1)
-        } else {
-            (position.0 - 1, position.1)
+        let adjacent = match self.get(position) {
+            '[' => (position.0 + 1, position.1),
+            ']' => (position.0 - 1, position.1),
+            _ => unreachable!(),
         };
         if !current.contains(&adjacent) {
             current = self.get_box_group(adjacent, movement, current);
         }
         let next = (position.0 + movement.0, position.1 + movement.1);
-        if !current.contains(&next) {
-            if let Some(&tile) = self.map.get(&next) {
-                if tile == '[' || tile == ']' {
-                    current = self.get_box_group(next, movement, current);
-                }
-            }
+        if !current.contains(&next) && (self.get(next) == '[' || self.get(next) == ']') {
+            current = self.get_box_group(next, movement, current);
         }
         current
     }
@@ -101,9 +88,9 @@ impl Map {
     fn process_moves(&mut self, moves: Vec<(i32, i32)>) {
         for (x, y) in moves {
             let next = (self.robot.0 + x, self.robot.1 + y);
-            if self.is_empty(next) {
+            if self.get(next) == '.' {
                 self.robot = next;
-            } else if self.map.get(&next) == Some(&'[') || self.map.get(&next) == Some(&']') {
+            } else if self.get(next) == '[' || self.get(next) == ']' {
                 let boxes = self.get_box_group(next, (x, y), HashSet::new());
                 if self.can_move(&boxes, (x, y)) {
                     self.robot = next;
