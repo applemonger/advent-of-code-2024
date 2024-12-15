@@ -43,7 +43,7 @@ impl Map {
     fn can_move(&self, box_group: &HashSet<(i32, i32)>, movement: (i32, i32)) -> bool {
         !box_group
             .iter()
-            .any(|pos| self.map.get(&(pos.0 + movement.0, pos.1 + movement.1)) == Some(&'#'))
+            .any(|pos| self.get((pos.0 + movement.0, pos.1 + movement.1)) == '#')
     }
 
     fn move_boxes(&mut self, box_group: HashSet<(i32, i32)>, movement: (i32, i32)) {
