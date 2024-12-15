@@ -49,17 +49,9 @@ impl Map {
     fn move_boxes(&mut self, box_group: HashSet<(i32, i32)>, movement: (i32, i32)) {
         let inserts: HashMap<(i32, i32), char> = box_group
             .iter()
-            .map(|pos| {
-                (
-                    (pos.0 + movement.0, pos.1 + movement.1),
-                    *self.map.get(pos).unwrap(),
-                )
-            })
+            .map(|&pos| ((pos.0 + movement.0, pos.1 + movement.1), self.get(pos)))
             .collect();
         self.map.retain(|k, _| !box_group.contains(k));
-        for pos in box_group {
-            self.map.remove(&pos);
-        }
         self.map.extend(inserts);
     }
 
@@ -79,7 +71,7 @@ impl Map {
             current = self.get_box_group(adjacent, movement, current);
         }
         let next = (position.0 + movement.0, position.1 + movement.1);
-        if !current.contains(&next) && (self.get(next) == '[' || self.get(next) == ']') {
+        if self.get(next) == '[' || self.get(next) == ']' {
             current = self.get_box_group(next, movement, current);
         }
         current
