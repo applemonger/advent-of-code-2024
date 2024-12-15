@@ -1,6 +1,6 @@
 use adventofcode::*;
 
 fn main() {
-    day12::solution1();
-    day12::solution2();
+    day14::solution1();
+    day14::solution2();
 }
