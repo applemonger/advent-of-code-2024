@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fmt::Display, ops::Add};
+use std::{collections::HashMap, fmt::Display, ops::{Add, Sub}};
 
 pub fn xy(x: i32, y: i32) -> XY {
     XY::new(x, y)
@@ -11,9 +11,22 @@ pub struct XY {
 }
 
 impl XY {
-    fn new(x: i32, y: i32) -> XY {
+    pub fn new(x: i32, y: i32) -> XY {
         XY { x, y }
     }
+
+    pub fn neighbors(&self) -> [XY; 4] {
+        [
+            XY::new(self.x + 1, self.y), 
+            XY::new(self.x - 1, self.y),
+            XY::new(self.x, self.y + 1),
+            XY::new(self.x, self.y - 1)
+        ]
+    }
+}
+
+pub fn cardinals() -> [XY; 4] {
+    [XY::new(1, 0), XY::new(-1, 0), XY::new(0, 1), XY::new(0, -1)]
 }
 
 impl Add for XY {
@@ -27,6 +40,17 @@ impl Add for XY {
     }
 }
 
+impl Sub for XY {
+    type Output = Self;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        XY {
+            x: self.x - rhs.x,
+            y: self.y - rhs.y
+        }
+    }
+}
+
 impl From<(usize, usize)> for XY {
     fn from(value: (usize, usize)) -> Self {
         XY {
@@ -36,6 +60,7 @@ impl From<(usize, usize)> for XY {
     }
 }
 
+#[derive(Default)]
 pub struct Grid {
     pub data: HashMap<XY, char>,
 }
@@ -71,4 +96,15 @@ impl Display for Grid {
         }
         write!(f, "{}", result)
     }
+}
+
+pub fn read_grid(input: &str) -> HashMap<XY, char> {
+    let grid = Grid::from(input);
+    grid.data.clone()
+}
+
+pub fn print_grid(grid: &HashMap<XY, char>) {
+    let mut temp_grid = Grid::default();
+    temp_grid.data = grid.clone();
+    println!("{}", temp_grid);
 }
