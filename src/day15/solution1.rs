@@ -59,25 +59,6 @@ impl Map {
             .map(|(&pos, _)| pos.1 * 100 + pos.0)
             .sum()
     }
-
-    // fn display(&self) {
-    //     let y_max = self.map.iter().map(|(k, v)| k.1).max().unwrap();
-    //     let x_max = self.map.iter().map(|(k, v)| k.0).max().unwrap();
-    //     for y in 0..=y_max {
-    //         let mut row = String::new();
-    //         for x in 0..=x_max {
-    //             if (x, y) == self.robot {
-    //                 row.push('@');
-    //             } else if let Some(c) = self.map.get(&(x, y)) {
-    //                 row.push(*c);
-    //             } else {
-    //                 row.push('#');
-    //             }
-    //         }
-    //         println!("{}", row);
-    //     }
-    //     println!();
-    // }
 }
 
 fn read_moves(input: &str) -> Vec<(i32, i32)> {
@@ -103,6 +84,3 @@ pub fn solution1() {
     map.process_moves(moves);
     submit!(1, map.gps());
 }
-
-#[aocd(2024, 15)]
-pub fn solution2() {}
