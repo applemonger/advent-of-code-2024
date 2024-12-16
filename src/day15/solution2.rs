@@ -1,4 +1,4 @@
-use crate::utils::{xy, XY};
+use crate::utils::{xy, Grid, XY};
 use aocd::*;
 use std::collections::{HashMap, HashSet};
 
@@ -10,25 +10,21 @@ struct Map {
 impl From<&str> for Map {
     fn from(input: &str) -> Map {
         let data: Vec<&str> = input.split("\n\n").collect();
-        let mut map: HashMap<XY, char> = data[0]
-            .lines()
-            .enumerate()
-            .flat_map(|(y, line)| {
-                line.chars()
-                    .enumerate()
-                    .filter(|&(_, c)| c != '.')
-                    .flat_map(move |(x, c)| match c {
-                        '@' => vec![(XY::from((x * 2, y)), c)],
-                        'O' => vec![(XY::from((x * 2, y)), '['), (XY::from((2 * x + 1, y)), ']')],
-                        _ => vec![(XY::from((x * 2, y)), c), (XY::from((2 * x + 1, y)), c)],
-                    })
-            })
-            .collect();
+        let mut grid = Grid::from(data[0]);
+        grid.data.retain(|_, v| *v != '.');
+        let mut map = HashMap::<XY, char>::new();
         let mut robot = XY::default();
-        if let Some((&position, _)) = map.iter().find(|&(_, v)| *v == '@') {
-            robot = position;
+        for (pos, &c) in grid.data.iter() {
+            if c == 'O' {
+                map.insert(xy(pos.x * 2, pos.y), '[');
+                map.insert(xy(pos.x * 2 + 1, pos.y), ']');
+            } else if c == '#' {
+                map.insert(xy(pos.x * 2, pos.y), c);
+                map.insert(xy(pos.x * 2 + 1, pos.y), c);
+            } else if c == '@' {
+                robot = xy(pos.x * 2, pos.y);
+            }
         }
-        map.remove(&robot);
         Map { robot, map }
     }
 }
