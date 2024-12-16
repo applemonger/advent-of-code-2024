@@ -24,14 +24,14 @@ fn get_min_open(open_set: &HashSet<(XY, XY)>, f_score: &HashMap<(XY, XY), i32>) 
     open_vec.pop().unwrap()
 }
 
-fn a_star(start: XY, goal: XY, grid: &HashMap<XY, char>) -> Vec<XY> {
+fn a_star(start: (XY, XY), goal: XY, grid: &HashMap<XY, char>) -> Vec<XY> {
     let mut open_set = HashSet::<(XY, XY)>::new();
-    open_set.insert((start, xy(1, 0)));
+    open_set.insert(start);
     let mut came_from = HashMap::<(XY, XY), (XY, XY)>::new();
     let mut g_score = HashMap::<(XY, XY), i32>::new();
-    g_score.insert((start, xy(1, 0)), 0);
+    g_score.insert(start, 0);
     let mut f_score = HashMap::<(XY, XY), i32>::new();
-    f_score.insert((start, xy(1, 0)), heuristic(start, goal));
+    f_score.insert(start, heuristic(start.0, goal));
     while !open_set.is_empty() {
         let current = get_min_open(&open_set, &f_score);
         if current.0 == goal {
@@ -110,7 +110,7 @@ pub fn solution1() {
     let grid = read_grid(data.as_str());
     let start = find_char(&grid, 'S').unwrap();
     let goal = find_char(&grid, 'E').unwrap();
-    let path = a_star(start, goal, &grid);
+    let path = a_star((start, xy(1, 0)), goal, &grid);
     let score = evaluate_path(&path);
     submit!(1, score);
 }
