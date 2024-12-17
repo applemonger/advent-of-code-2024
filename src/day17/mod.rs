@@ -1,7 +1,6 @@
 use aocd::*;
 use cached::proc_macro::cached;
 use regex::Regex;
-use std::collections::HashMap;
 
 fn read_program(input: &str) -> Vec<u8> {
     let re = Regex::new(r"Program: (.*)$").unwrap();
@@ -15,24 +14,17 @@ struct Machine {
     a: isize,
     b: isize,
     c: isize,
-    out: Option<isize>,
 }
 
 impl From<&str> for Machine {
     fn from(value: &str) -> Self {
-        let re = Regex::new(r"Register ([A-Z]{1}): (\d+)").unwrap();
-        let mut registers = HashMap::new();
-        for capture in re.captures_iter(value) {
-            let register = capture.get(1).unwrap().as_str().chars().next().unwrap();
-            let value: isize = capture.get(2).unwrap().as_str().parse().unwrap();
-            registers.insert(register, value);
-        }
-        let a = *registers.get(&'A').unwrap();
-        let b = *registers.get(&'B').unwrap();
-        let c = *registers.get(&'C').unwrap();
+        let re = Regex::new(r"Register [A-Z]{1}: (\d+)").unwrap();
+        let mut caps = re.captures_iter(value);
+        let a: isize = caps.next().unwrap()[1].parse().unwrap();
+        let b: isize = caps.next().unwrap()[1].parse().unwrap();
+        let c: isize = caps.next().unwrap()[1].parse().unwrap();
         let ptr = 0;
-        let out = None;
-        Machine { ptr, a, b, c, out }
+        Machine { ptr, a, b, c }
     }
 }
 
