@@ -1,14 +1,21 @@
+use aocd::*;
+use cached::proc_macro::cached;
+use regex::Regex;
 use std::collections::HashMap;
 
-use aocd::*;
-use itertools::Itertools;
-use regex::Regex;
+fn read_program(input: &str) -> Vec<u8> {
+    let re = Regex::new(r"Program: (.*)$").unwrap();
+    let program = re.captures(input).unwrap().get(1).unwrap().as_str();
+    program.split(',').map(|c| c.parse().unwrap()).collect()
+}
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Hash, PartialEq, Eq, Clone, Copy)]
 struct Machine {
-    registers: HashMap<char, isize>,
-    program: Vec<u8>,
-    out: Vec<isize>
+    ptr: usize,
+    a: isize,
+    b: isize,
+    c: isize,
+    out: Option<isize>,
 }
 
 impl From<&str> for Machine {
@@ -20,102 +27,103 @@ impl From<&str> for Machine {
             let value: isize = capture.get(2).unwrap().as_str().parse().unwrap();
             registers.insert(register, value);
         }
-        let re = Regex::new(r"Program: (.*)$").unwrap();
-        let program = re.captures(value).unwrap().get(1).unwrap().as_str();
-        let program: Vec<u8> = program.split(',').map(|c| c.parse().unwrap()).collect();
-        let out = Vec::new();
-        Machine { registers, program, out }
+        let a = *registers.get(&'A').unwrap();
+        let b = *registers.get(&'B').unwrap();
+        let c = *registers.get(&'C').unwrap();
+        let ptr = 0;
+        let out = None;
+        Machine { ptr, a, b, c, out }
     }
 }
 
 impl Machine {
-    fn reg(&self, register: char) -> isize {
-        *self.registers.get(&register).unwrap()
-    }
-
-    fn set(&mut self, register: char, value: isize) {
-        self.registers.entry(register).and_modify(|x| *x = value);
-    }
-
     fn combo(&self, operand: u8) -> isize {
         match operand {
             0 => 0,
             1 => 1,
             2 => 2,
             3 => 3,
-            4 => self.reg('A'),
-            5 => self.reg('B'),
-            6 => self.reg('C'),
+            4 => self.a,
+            5 => self.b,
+            6 => self.c,
             7 => panic!("Reserved operand."),
-            _ => panic!("Unkown operand.")
+            _ => panic!("Unkown operand."),
         }
     }
 
-    fn process(&mut self, mut ptr: usize) {
-        let opcode = self.program[ptr];
-        let operand = self.program[ptr+1];
+    fn step(&mut self, opcode: u8, operand: u8) -> Option<isize> {
+        let mut out = None;
         match opcode {
             0 => {
-                let value = self.reg('A') / 2_isize.pow(self.combo(operand) as u32);
-                self.set('A', value);
-                ptr += 2;
+                self.a /= 2_isize.pow(self.combo(operand) as u32);
+                self.ptr += 2;
             }
             1 => {
-                let value = self.reg('B') ^ self.combo(operand) as isize;
-                self.set('B', value);
-                ptr += 2;
+                self.b ^= self.combo(operand);
+                self.ptr += 2;
             }
             2 => {
-                self.set('B', self.combo(operand) % 8);
-                ptr += 2;
+                self.b = self.combo(operand) % 8;
+                self.ptr += 2;
             }
             3 => {
-                if self.reg('A') != 0 {
-                    ptr = operand as usize;
+                if self.a != 0 {
+                    self.ptr = operand as usize;
                 } else {
-                    ptr += 2;
+                    self.ptr += 2;
                 }
-            },
+            }
             4 => {
-                self.set('B', self.reg('B') ^ self.reg('C'));
-                ptr += 2;
+                self.b ^= self.c;
+                self.ptr += 2;
             }
             5 => {
-                self.out.push(self.combo(operand) % 8);
-                ptr += 2;
+                out = Some(self.combo(operand) % 8);
+                self.ptr += 2;
             }
             6 => {
-                let value = self.reg('A') / 2_isize.pow(self.combo(operand) as u32);
-                self.set('B', value);
-                ptr += 2;
+                self.b = self.a / 2_isize.pow(self.combo(operand) as u32);
+                self.ptr += 2;
             }
             7 => {
-                let value = self.reg('A') / 2_isize.pow(self.combo(operand) as u32);
-                self.set('C', value);
-                ptr += 2;
+                self.c = self.a / 2_isize.pow(self.combo(operand) as u32);
+                self.ptr += 2;
             }
-            _ => panic!("Invalid opcode.")
+            _ => panic!("Invalid opcode."),
         }
-        if ptr < self.program.len() {
-            self.process(ptr);
-        }
-    }
-
-    fn out(&self) -> String {
-        self.out.iter().map(|x| x.to_string()).join(",")
+        out
     }
 }
 
+#[cached]
+fn process(mut state: Machine, program: Vec<u8>) -> Vec<isize> {
+    let mut out = Vec::new();
+    if state.ptr < program.len() {
+        let opcode = program[state.ptr];
+        let operand = program[state.ptr + 1];
+        if let Some(o) = state.step(opcode, operand) {
+            out.push(o);
+        }
+        out.extend(process(state, program));
+    }
+    out
+}
+
+fn read_out(out: Vec<isize>) -> String {
+    out.iter()
+        .map(|x| x.to_string())
+        .collect::<Vec<String>>()
+        .join(",")
+}
 
 #[aocd(2024, 17)]
 pub fn solution1() {
     let data = input!();
-    let mut machine = Machine::from(data.as_str());
-    machine.process(0);
-    submit!(1, machine.out());
+    let machine = Machine::from(data.as_str());
+    let program = read_program(data.as_str());
+    let out = process(machine, program);
+    submit!(1, read_out(out));
 }
 
 #[aocd(2024, 17)]
-pub fn solution2() {
-    
-}
+pub fn solution2() {}

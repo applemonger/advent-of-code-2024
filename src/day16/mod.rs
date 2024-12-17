@@ -1,6 +1,6 @@
-use std::collections::{HashMap, HashSet};
-use aocd::*;
 use crate::utils::{cardinals, read_grid, xy, XY};
+use aocd::*;
+use std::collections::{HashMap, HashSet};
 
 const INF: i32 = i32::MAX / 2;
 
@@ -58,19 +58,18 @@ fn a_star(start: (XY, XY), goal: XY, grid: &HashMap<XY, char>) -> Vec<XY> {
     Vec::new()
 }
 
-fn evaluate_path(path: &Vec<XY>) -> usize {
+fn evaluate_path(path: &[XY]) -> usize {
     let mut facing = xy(1, 0);
     let mut cost = 0;
-    path.windows(2)
-        .for_each(|pair| {
-            let movement = pair[1] - pair[0];
-            if facing == movement {
-                cost += 1;
-            } else {
-                cost += 1001;
-            }
-            facing = movement;
-        });
+    path.windows(2).for_each(|pair| {
+        let movement = pair[1] - pair[0];
+        if facing == movement {
+            cost += 1;
+        } else {
+            cost += 1001;
+        }
+        facing = movement;
+    });
     cost
 }
 
@@ -83,26 +82,26 @@ fn find_char(grid: &HashMap<XY, char>, target: char) -> Option<XY> {
     None
 }
 
-fn print_path(path: &Vec<XY>, grid: &HashMap<XY, char>) {
-    let path: HashSet<XY> = path.iter().cloned().collect();
-    let y_max = grid.keys().map(|k| k.y).max().unwrap();
-    let x_max = grid.keys().map(|k| k.x).max().unwrap();
-    let mut result = String::new();
-    for y in 0..=y_max {
-        let mut row = String::new();
-        for x in 0..=x_max {
-            if !path.contains(&xy(x, y)) {
-                let c = *grid.get(&xy(x, y)).unwrap_or(&' ');
-                row.push(c);
-            } else {
-                row.push('o');
-            }
-        }
-        result += &row;
-        result.push('\n');
-    }
-    println!("{}", result);
-}
+// fn print_path(path: &Vec<XY>, grid: &HashMap<XY, char>) {
+//     let path: HashSet<XY> = path.iter().cloned().collect();
+//     let y_max = grid.keys().map(|k| k.y).max().unwrap();
+//     let x_max = grid.keys().map(|k| k.x).max().unwrap();
+//     let mut result = String::new();
+//     for y in 0..=y_max {
+//         let mut row = String::new();
+//         for x in 0..=x_max {
+//             if !path.contains(&xy(x, y)) {
+//                 let c = *grid.get(&xy(x, y)).unwrap_or(&' ');
+//                 row.push(c);
+//             } else {
+//                 row.push('o');
+//             }
+//         }
+//         result += &row;
+//         result.push('\n');
+//     }
+//     println!("{}", result);
+// }
 
 #[aocd(2024, 16)]
 pub fn solution1() {
@@ -116,6 +115,4 @@ pub fn solution1() {
 }
 
 #[aocd(2024, 16)]
-pub fn solution2() {
-    
-}
+pub fn solution2() {}
