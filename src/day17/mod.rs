@@ -109,7 +109,7 @@ fn process(mut state: Machine, program: Vec<u8>) -> Vec<isize> {
     out
 }
 
-fn read_out(out: Vec<isize>) -> String {
+fn read_out<T: ToString>(out: &Vec<T>) -> String {
     out.iter()
         .map(|x| x.to_string())
         .collect::<Vec<String>>()
@@ -122,7 +122,7 @@ pub fn solution1() {
     let machine = Machine::from(data.as_str());
     let program = read_program(data.as_str());
     let out = process(machine, program);
-    submit!(1, read_out(out));
+    submit!(1, read_out(&out));
 }
 
 #[aocd(2024, 17)]
