@@ -37,7 +37,7 @@ impl Machine {
         self.registers.entry(register).and_modify(|x| *x = value);
     }
 
-    fn operand(&self, operand: u8) -> isize {
+    fn combo(&self, operand: u8) -> isize {
         match operand {
             0 => 0,
             1 => 1,
@@ -56,17 +56,17 @@ impl Machine {
         let operand = self.program[ptr+1];
         match opcode {
             0 => {
-                let value = self.reg('A') / 2_isize.pow(self.operand(operand) as u32);
+                let value = self.reg('A') / 2_isize.pow(self.combo(operand) as u32);
                 self.set('A', value);
                 ptr += 2;
             }
             1 => {
-                let value = self.reg('B') ^ self.operand(operand) as isize;
+                let value = self.reg('B') ^ self.combo(operand) as isize;
                 self.set('B', value);
                 ptr += 2;
             }
             2 => {
-                self.set('B', self.operand(operand) % 8);
+                self.set('B', self.combo(operand) % 8);
                 ptr += 2;
             }
             3 => {
@@ -81,16 +81,16 @@ impl Machine {
                 ptr += 2;
             }
             5 => {
-                self.out.push(self.operand(operand) % 8);
+                self.out.push(self.combo(operand) % 8);
                 ptr += 2;
             }
             6 => {
-                let value = self.reg('A') / 2_isize.pow(self.operand(operand) as u32);
+                let value = self.reg('A') / 2_isize.pow(self.combo(operand) as u32);
                 self.set('B', value);
                 ptr += 2;
             }
             7 => {
-                let value = self.reg('A') / 2_isize.pow(self.operand(operand) as u32);
+                let value = self.reg('A') / 2_isize.pow(self.combo(operand) as u32);
                 self.set('C', value);
                 ptr += 2;
             }
