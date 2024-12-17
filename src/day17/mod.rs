@@ -1,19 +1,16 @@
 use aocd::*;
-use cached::proc_macro::cached;
+use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use regex::Regex;
 
-fn read_program(input: &str) -> Vec<u8> {
-    let re = Regex::new(r"Program: (.*)$").unwrap();
-    let program = re.captures(input).unwrap().get(1).unwrap().as_str();
-    program.split(',').map(|c| c.parse().unwrap()).collect()
-}
-
-#[derive(Debug, Default, Hash, PartialEq, Eq, Clone, Copy)]
+#[derive(Debug, Default, Hash, PartialEq, Eq, Clone)]
 struct Machine {
     ptr: usize,
     a: isize,
     b: isize,
     c: isize,
+    program: Vec<u8>,
+    initial: (isize, isize, isize),
+    out: Vec<u8>
 }
 
 impl From<&str> for Machine {
@@ -24,11 +21,24 @@ impl From<&str> for Machine {
         let b: isize = caps.next().unwrap()[1].parse().unwrap();
         let c: isize = caps.next().unwrap()[1].parse().unwrap();
         let ptr = 0;
-        Machine { ptr, a, b, c }
+        let re = Regex::new(r"Program: (.*)$").unwrap();
+        let program = re.captures(value).unwrap().get(1).unwrap().as_str();
+        let program = program.split(',').map(|c| c.parse().unwrap()).collect();
+        let initial = (a, b, c);
+        let out = Vec::new();
+        Machine { ptr, a, b, c, program, initial, out }
     }
 }
 
 impl Machine {
+    fn reset(&mut self) {
+        self.ptr = 0;
+        self.a = self.initial.0;
+        self.b = self.initial.1;
+        self.c = self.initial.2;
+        self.out = Vec::new();
+    }
+
     fn combo(&self, operand: u8) -> isize {
         match operand {
             0 => 0,
@@ -43,8 +53,9 @@ impl Machine {
         }
     }
 
-    fn step(&mut self, opcode: u8, operand: u8) -> Option<isize> {
-        let mut out = None;
+    fn execute(&mut self) {
+        let opcode = self.program[self.ptr];
+        let operand = self.program[self.ptr+1];
         match opcode {
             0 => {
                 self.a /= 2_isize.pow(self.combo(operand) as u32);
@@ -70,7 +81,7 @@ impl Machine {
                 self.ptr += 2;
             }
             5 => {
-                out = Some(self.combo(operand) % 8);
+                self.out.push((self.combo(operand) % 8) as u8);
                 self.ptr += 2;
             }
             6 => {
@@ -83,22 +94,10 @@ impl Machine {
             }
             _ => panic!("Invalid opcode."),
         }
-        out
-    }
-}
-
-#[cached]
-fn process(mut state: Machine, program: Vec<u8>) -> Vec<isize> {
-    let mut out = Vec::new();
-    if state.ptr < program.len() {
-        let opcode = program[state.ptr];
-        let operand = program[state.ptr + 1];
-        if let Some(o) = state.step(opcode, operand) {
-            out.push(o);
+        if self.ptr < self.program.len() {
+            self.execute();
         }
-        out.extend(process(state, program));
     }
-    out
 }
 
 fn read_out<T: ToString>(out: &Vec<T>) -> String {
@@ -111,11 +110,37 @@ fn read_out<T: ToString>(out: &Vec<T>) -> String {
 #[aocd(2024, 17)]
 pub fn solution1() {
     let data = input!();
-    let machine = Machine::from(data.as_str());
-    let program = read_program(data.as_str());
-    let out = process(machine, program);
-    submit!(1, read_out(&out));
+    let mut machine = Machine::from(data.as_str());
+    machine.execute();
+    submit!(1, read_out(&machine.out));
 }
 
 #[aocd(2024, 17)]
-pub fn solution2() {}
+pub fn solution2() {
+    let data = input!();
+    let mut machine = Machine::from(data.as_str());
+    let default = machine.clone();
+    let mut a = 1;
+    let mut lower = 0;
+    let mut upper = 0;
+    'bounds: loop {
+        machine.reset();
+        machine.a = a;
+        machine.execute();
+        if machine.out.len() == machine.program.len() - 1 && lower == 0 {
+            lower = a;
+        }
+        if machine.out.len() > machine.program.len() && upper == 0 {
+            upper = a;
+            break 'bounds;
+        }
+        a *= 2;
+    }
+    let seed = (lower..=upper).into_par_iter().find_any(|a| {
+        let mut machine = default.clone();
+        machine.a = *a;
+        machine.execute();
+        machine.out == machine.program
+    });
+    submit!(1, seed.unwrap());
+}
