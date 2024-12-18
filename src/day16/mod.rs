@@ -1,6 +1,9 @@
 use crate::utils::{cardinals, read_grid, xy, XY};
 use aocd::*;
-use std::{collections::HashMap, usize};
+use std::{
+    collections::{HashMap, HashSet},
+    usize,
+};
 
 const INF: i32 = i32::MAX / 2;
 
@@ -117,4 +120,25 @@ pub fn solution1() {
 }
 
 #[aocd(2024, 16)]
-pub fn solution2() {}
+pub fn solution2() {
+    let data = input!();
+    let grid = read_grid(data.as_str());
+    let start = find_char(&grid, 'S').unwrap();
+    let goal = find_char(&grid, 'E').unwrap();
+    let (dist, prev) = dijkstra((start, xy(1, 0)), &grid);
+    let mut score = usize::MAX;
+    for direction in cardinals() {
+        let path_opt = get_path((start, xy(1, 0)), (goal, direction), &prev);
+        if let Some(path) = path_opt {
+            let path_score = evaluate_path(&path);
+            score = score.min(path_score);
+        }
+    }
+}
+
+fn get_points(dist: &HashMap<(XY, XY), i32>, threshold: i32) -> HashSet<XY> {
+    dist.iter()
+        .filter(|(_, &score)| score <= threshold)
+        .map(|(&node, _)| node.0)
+        .collect()
+}
