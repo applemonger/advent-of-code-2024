@@ -63,11 +63,8 @@ fn cost(path: &[Node]) -> i32 {
     turns as i32 * 1000 + path.len() as i32 - 1
 }
 
-fn find_char(grid: &HashMap<XY, char>, target: char) -> Option<XY> {
-    grid.iter()
-        .find(|&(_, &v)| v == target)
-        .map(|(k, _)| k)
-        .copied()
+fn find_char(grid: &HashMap<XY, char>, c: char) -> Option<XY> {
+    grid.iter().find(|&(_, &v)| v == c).map(|(k, _)| k).copied()
 }
 
 #[aocd(2024, 16)]
