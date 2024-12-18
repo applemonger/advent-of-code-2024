@@ -10,7 +10,7 @@ struct Machine {
     c: isize,
     program: Vec<u8>,
     initial: (isize, isize, isize),
-    out: Vec<u8>
+    out: Vec<u8>,
 }
 
 impl From<&str> for Machine {
@@ -26,7 +26,15 @@ impl From<&str> for Machine {
         let program = program.split(',').map(|c| c.parse().unwrap()).collect();
         let initial = (a, b, c);
         let out = Vec::new();
-        Machine { ptr, a, b, c, program, initial, out }
+        Machine {
+            ptr,
+            a,
+            b,
+            c,
+            program,
+            initial,
+            out,
+        }
     }
 }
 
@@ -55,7 +63,7 @@ impl Machine {
 
     fn execute(&mut self) {
         let opcode = self.program[self.ptr];
-        let operand = self.program[self.ptr+1];
+        let operand = self.program[self.ptr + 1];
         match opcode {
             0 => {
                 self.a /= 2_isize.pow(self.combo(operand) as u32);
@@ -100,7 +108,7 @@ impl Machine {
     }
 }
 
-fn read_out<T: ToString>(out: &Vec<T>) -> String {
+fn read_out<T: ToString>(out: &[T]) -> String {
     out.iter()
         .map(|x| x.to_string())
         .collect::<Vec<String>>()
