@@ -77,12 +77,7 @@ fn cost(path: &[Node]) -> usize {
 }
 
 fn find_char(grid: &HashMap<XY, char>, target: char) -> Option<XY> {
-    for (&pos, &c) in grid.iter() {
-        if c == target {
-            return Some(pos);
-        }
-    }
-    None
+    grid.iter().find(|&(_, &v)| v == target).map(|(k, _)| k).copied()
 }
 
 #[aocd(2024, 16)]
