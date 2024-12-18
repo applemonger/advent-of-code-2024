@@ -59,12 +59,8 @@ fn search(
 }
 
 fn cost(path: &[Node]) -> i32 {
-    path.windows(2)
-        .map(|pair| {
-            let turn = pair[1].1 != pair[0].1;
-            1 + (turn as i32) * 1000
-        })
-        .sum()
+    let turns = path.windows(2).filter(|n| n[1].1 != n[0].1).count();
+    turns as i32 * 1000 + path.len() as i32 - 1
 }
 
 fn find_char(grid: &HashMap<XY, char>, target: char) -> Option<XY> {
