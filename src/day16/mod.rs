@@ -6,42 +6,63 @@ const INF: i32 = i32::MAX / 2;
 
 pub type Node = (XY, XY);
 
-fn dijkstra(
-    source: Node,
+struct Heap {
+    data: Vec<Node>,
+}
+
+impl Heap {
+    fn insert(&mut self, node: Node) {
+        self.data.push(node);
+    }
+
+    fn pop(&mut self, f_score: &HashMap<Node, i32>) -> Option<Node> {
+        self.data
+            .sort_by_key(|node| -f_score.get(node).unwrap_or(&INF));
+        self.data.pop()
+    }
+
+    fn contains(&self, node: &Node) -> bool {
+        self.data.contains(node)
+    }
+}
+
+fn h(a: XY, b: XY) -> i32 {
+    (b.x - a.x).abs() + (b.y - a.y).abs()
+}
+
+fn a_star(
+    start: Node,
     goal: XY,
     map: &HashMap<XY, char>,
 ) -> (HashMap<Node, i32>, HashMap<Node, HashSet<Node>>) {
-    let mut dist = HashMap::<Node, i32>::new();
+    let mut open = Heap { data: vec![start] };
     let mut prev = HashMap::<Node, HashSet<Node>>::new();
-    let mut open = Vec::<Node>::new();
-    for (&pos, _) in map.iter().filter(|&(_, &v)| v != '#') {
-        for direction in cardinals() {
-            open.push((pos, direction));
-        }
-    }
-    dist.insert(source, 0);
-    'search: while !open.is_empty() {
-        open.sort_by_key(|node| -dist.get(node).unwrap_or(&INF));
-        let node = open.pop().unwrap();
-        if node.0 == goal {
+    let mut g_score = HashMap::<Node, i32>::new();
+    g_score.insert(start, 0);
+    let mut f_score = HashMap::<Node, i32>::new();
+    f_score.insert(start, h(start.0, goal));
+    'search: while let Some(current) = open.pop(&f_score) {
+        if current.0 == goal {
             continue 'search;
         }
-        'neighbors: for direction in cardinals() {
-            let neighbor = (node.0 + direction, direction);
+        'neighbors: for movement in cardinals() {
+            let neighbor = (current.0 + movement, movement);
             if map.get(&neighbor.0) == Some(&'#') {
                 continue 'neighbors;
             }
-            if open.contains(&neighbor) {
-                let cost = 1 + (node.1 != direction) as i32 * 1000;
-                let alt = dist.get(&node).unwrap_or(&INF) + cost;
-                if alt <= *dist.get(&neighbor).unwrap_or(&INF) {
-                    dist.insert(neighbor, alt);
-                    prev.entry(neighbor).or_default().insert(node);
+            let cost = 1 + (current.1 != movement) as i32 * 1000;
+            let alt = g_score.get(&current).unwrap_or(&INF) + cost;
+            if alt <= *g_score.get(&neighbor).unwrap_or(&INF) {
+                prev.entry(neighbor).or_default().insert(current);
+                g_score.insert(neighbor, alt);
+                f_score.insert(neighbor, alt + h(neighbor.0, goal));
+                if !open.contains(&neighbor) {
+                    open.insert(neighbor);
                 }
             }
         }
     }
-    (dist, prev)
+    (g_score, prev)
 }
 
 fn search(
@@ -84,7 +105,7 @@ pub fn solution1() {
     let grid = read_grid(data.as_str());
     let start = find_char(&grid, 'S').unwrap();
     let goal = find_char(&grid, 'E').unwrap();
-    let (dist, _) = dijkstra((start, xy(1, 0)), goal, &grid);
+    let (dist, _) = a_star((start, xy(1, 0)), goal, &grid);
     let best_score = cardinals()
         .iter()
         .map(|dir| dist.get(&(goal, *dir)).unwrap_or(&INF))
@@ -99,7 +120,7 @@ pub fn solution2() {
     let grid = read_grid(data.as_str());
     let start = (find_char(&grid, 'S').unwrap(), xy(1, 0));
     let goal = find_char(&grid, 'E').unwrap();
-    let (dist, mut prev) = dijkstra(start, goal, &grid);
+    let (dist, mut prev) = a_star(start, goal, &grid);
     let best_score = cardinals()
         .iter()
         .map(|dir| dist.get(&(goal, *dir)).unwrap_or(&INF))
