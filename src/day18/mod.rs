@@ -1,6 +1,6 @@
 use crate::utils::{xy, XY};
 use aocd::*;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 const INF: i32 = i32::MAX / 2;
 
@@ -51,7 +51,7 @@ fn reconstruct_path(prev: &HashMap<XY, XY>, mut current: XY) -> Vec<XY> {
     total_path
 }
 
-fn a_star(start: XY, goal: XY, map: &HashMap<XY, char>) -> Option<Vec<XY>> {
+fn a_star(start: XY, goal: XY, map: &HashMap<XY, char>) -> Vec<XY> {
     let mut open = Heap { data: vec![start] };
     let mut prev = HashMap::<XY, XY>::new();
     let mut g_score = HashMap::<XY, i32>::new();
@@ -60,7 +60,7 @@ fn a_star(start: XY, goal: XY, map: &HashMap<XY, char>) -> Option<Vec<XY>> {
     f_score.insert(start, h(start, goal));
     while let Some(current) = open.pop(&f_score) {
         if current == goal {
-            return Some(reconstruct_path(&prev, current));
+            return reconstruct_path(&prev, current);
         }
         'search: for neighbor in current.neighbors() {
             if map.get(&neighbor) != Some(&'.') {
@@ -77,7 +77,7 @@ fn a_star(start: XY, goal: XY, map: &HashMap<XY, char>) -> Option<Vec<XY>> {
             }
         }
     }
-    None
+    Vec::new()
 }
 
 #[aocd(2024, 18)]
@@ -94,7 +94,7 @@ pub fn solution1() {
     while let Some(obstacle) = obstacles.pop() {
         grid.insert(obstacle, '#');
     }
-    let path = a_star(xy(0, 0), xy(dim, dim), &grid).unwrap();
+    let path = a_star(xy(0, 0), xy(dim, dim), &grid);
     submit!(1, path.len() - 1);
 }
 
@@ -109,10 +109,13 @@ pub fn solution2() {
             grid.insert(xy(i, j), '.');
         }
     }
+    let mut path: HashSet<XY> = a_star(xy(0, 0), xy(dim, dim), &grid).into_iter().collect();
     'simulate: while let Some(obstacle) = obstacles.pop() {
         grid.insert(obstacle, '#');
-        let path = a_star(xy(0, 0), xy(dim, dim), &grid);
-        if path.is_none() {
+        if path.contains(&obstacle) {
+            path = a_star(xy(0, 0), xy(dim, dim), &grid).into_iter().collect();
+        }
+        if path.is_empty() {
             let obstacle = format!("{},{}", obstacle.x, obstacle.y);
             submit!(2, obstacle);
             break 'simulate;
