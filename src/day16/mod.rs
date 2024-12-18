@@ -1,4 +1,4 @@
-use crate::utils::{cardinals, read_grid, xy, XY};
+use crate::utils::{cardinals, print_grid, read_grid, xy, XY};
 use aocd::*;
 use std::{
     collections::{HashMap, HashSet},
@@ -9,9 +9,9 @@ const INF: i32 = i32::MAX / 2;
 
 pub type Node = (XY, XY);
 
-fn dijkstra(source: Node, map: &HashMap<XY, char>) -> (HashMap<Node, i32>, HashMap<Node, Node>) {
+fn dijkstra(source: Node, goal: XY, map: &HashMap<XY, char>) -> (HashMap<Node, i32>, HashMap<Node, HashSet<Node>>) {
     let mut dist = HashMap::<Node, i32>::new();
-    let mut prev = HashMap::<Node, Node>::new();
+    let mut prev = HashMap::<Node, HashSet<Node>>::new();
     let mut open = Vec::<Node>::new();
     for (&pos, &c) in map.iter() {
         if c != '#' {
@@ -21,20 +21,23 @@ fn dijkstra(source: Node, map: &HashMap<XY, char>) -> (HashMap<Node, i32>, HashM
         }
     }
     dist.insert(source, 0);
-    while !open.is_empty() {
+    'search: while !open.is_empty() {
         open.sort_by_key(|node| -dist.get(node).unwrap_or(&INF));
         let node = open.pop().unwrap();
-        'search: for direction in cardinals() {
+        if node.0 == goal {
+            continue 'search;
+        }
+        'neighbors: for direction in cardinals() {
             let neighbor = (node.0 + direction, direction);
             if map.get(&neighbor.0) == Some(&'#') {
-                continue 'search;
+                continue 'neighbors;
             }
             if open.contains(&neighbor) {
                 let cost = 1 + (node.1 != direction) as i32 * 1000;
                 let alt = dist.get(&node).unwrap_or(&INF) + cost;
-                if alt < *dist.get(&neighbor).unwrap_or(&INF) {
+                if alt <= *dist.get(&neighbor).unwrap_or(&INF) {
                     dist.insert(neighbor, alt);
-                    prev.insert(neighbor, node);
+                    prev.entry(neighbor).or_default().insert(node);
                 }
             }
         }
@@ -42,27 +45,19 @@ fn dijkstra(source: Node, map: &HashMap<XY, char>) -> (HashMap<Node, i32>, HashM
     (dist, prev)
 }
 
-fn get_path(source: Node, target: Node, prev: &HashMap<Node, Node>) -> Option<Vec<Node>> {
-    let mut path = Vec::<Node>::new();
-    let mut node = Some(target);
-    if prev.get(&target).is_some() || target == source {
-        while node.is_some() {
-            path.push(node.unwrap());
-            node = prev.get(&node.unwrap()).copied();
+fn search(start: Node, goal: Node, prev: &HashMap<Node, HashSet<Node>>, mut path: Vec<Node>, paths: &mut Vec<Vec<Node>>) {
+    path.push(goal);
+    if let Some(priors) = prev.get(&goal) {
+        for prior in priors {
+            search(start, *prior, prev, path.clone(), paths);
         }
     }
-    path.reverse();
-    if path.is_empty()
-        || path.first().copied() != Some(source)
-        || path.last().copied() != Some(target)
-    {
-        None
-    } else {
-        Some(path)
+    if goal == start {
+        paths.push(path);
     }
 }
 
-fn evaluate_path(path: &[Node]) -> usize {
+fn cost(path: &[Node]) -> usize {
     path.windows(2)
         .map(|pair| {
             let turn = pair[1].1 != pair[0].1;
@@ -80,43 +75,19 @@ fn find_char(grid: &HashMap<XY, char>, target: char) -> Option<XY> {
     None
 }
 
-// fn print_path(path: &Vec<XY>, grid: &HashMap<XY, char>) {
-//     let path: HashSet<XY> = path.iter().cloned().collect();
-//     let y_max = grid.keys().map(|k| k.y).max().unwrap();
-//     let x_max = grid.keys().map(|k| k.x).max().unwrap();
-//     let mut result = String::new();
-//     for y in 0..=y_max {
-//         let mut row = String::new();
-//         for x in 0..=x_max {
-//             if !path.contains(&xy(x, y)) {
-//                 let c = *grid.get(&xy(x, y)).unwrap_or(&' ');
-//                 row.push(c);
-//             } else {
-//                 row.push('o');
-//             }
-//         }
-//         result += &row;
-//         result.push('\n');
-//     }
-//     println!("{}", result);
-// }
-
 #[aocd(2024, 16)]
 pub fn solution1() {
     let data = input!();
     let grid = read_grid(data.as_str());
     let start = find_char(&grid, 'S').unwrap();
     let goal = find_char(&grid, 'E').unwrap();
-    let (_, prev) = dijkstra((start, xy(1, 0)), &grid);
-    let mut score = usize::MAX;
+    let (_, prev) = dijkstra((start, xy(1, 0)), goal, &grid);
+    let mut paths = Vec::new();
     for direction in cardinals() {
-        let path_opt = get_path((start, xy(1, 0)), (goal, direction), &prev);
-        if let Some(path) = path_opt {
-            let path_score = evaluate_path(&path);
-            score = score.min(path_score);
-        }
+        search((start, xy(1, 0)), (goal, direction), &prev, Vec::new(), &mut paths);
     }
-    submit!(1, score);
+    let best_score = paths.iter().map(|path| cost(path)).min().unwrap();
+    submit!(1, best_score);
 }
 
 #[aocd(2024, 16)]
@@ -125,20 +96,13 @@ pub fn solution2() {
     let grid = read_grid(data.as_str());
     let start = find_char(&grid, 'S').unwrap();
     let goal = find_char(&grid, 'E').unwrap();
-    let (_, prev) = dijkstra((start, xy(1, 0)), &grid);
-    let mut score = usize::MAX;
+    let (_, prev) = dijkstra((start, xy(1, 0)), goal, &grid);
+    let mut paths = Vec::new();
     for direction in cardinals() {
-        let path_opt = get_path((start, xy(1, 0)), (goal, direction), &prev);
-        if let Some(path) = path_opt {
-            let path_score = evaluate_path(&path);
-            score = score.min(path_score);
-        }
+        search((start, xy(1, 0)), (goal, direction), &prev, Vec::new(), &mut paths);
     }
-}
-
-fn _get_points(dist: &HashMap<(XY, XY), i32>, threshold: i32) -> HashSet<XY> {
-    dist.iter()
-        .filter(|(_, &score)| score <= threshold)
-        .map(|(&node, _)| node.0)
-        .collect()
+    let best_score = paths.iter().map(|path| cost(path)).min().unwrap();
+    paths.retain(|path| cost(path) == best_score);
+    let seats: HashSet<XY> = paths.iter().flat_map(|path| path.iter().map(|node| node.0)).collect();
+    submit!(2, seats.len());
 }
