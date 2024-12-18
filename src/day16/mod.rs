@@ -1,4 +1,4 @@
-use crate::utils::{cardinals, print_grid, read_grid, xy, XY};
+use crate::utils::{cardinals, read_grid, xy, XY};
 use aocd::*;
 use std::{
     collections::{HashMap, HashSet},
@@ -9,7 +9,11 @@ const INF: i32 = i32::MAX / 2;
 
 pub type Node = (XY, XY);
 
-fn dijkstra(source: Node, goal: XY, map: &HashMap<XY, char>) -> (HashMap<Node, i32>, HashMap<Node, HashSet<Node>>) {
+fn dijkstra(
+    source: Node,
+    goal: XY,
+    map: &HashMap<XY, char>,
+) -> (HashMap<Node, i32>, HashMap<Node, HashSet<Node>>) {
     let mut dist = HashMap::<Node, i32>::new();
     let mut prev = HashMap::<Node, HashSet<Node>>::new();
     let mut open = Vec::<Node>::new();
@@ -45,7 +49,13 @@ fn dijkstra(source: Node, goal: XY, map: &HashMap<XY, char>) -> (HashMap<Node, i
     (dist, prev)
 }
 
-fn search(start: Node, goal: Node, prev: &HashMap<Node, HashSet<Node>>, mut path: Vec<Node>, paths: &mut Vec<Vec<Node>>) {
+fn search(
+    start: Node,
+    goal: Node,
+    prev: &HashMap<Node, HashSet<Node>>,
+    mut path: Vec<Node>,
+    paths: &mut Vec<Vec<Node>>,
+) {
     path.push(goal);
     if let Some(priors) = prev.get(&goal) {
         for prior in priors {
@@ -84,7 +94,13 @@ pub fn solution1() {
     let (_, prev) = dijkstra((start, xy(1, 0)), goal, &grid);
     let mut paths = Vec::new();
     for direction in cardinals() {
-        search((start, xy(1, 0)), (goal, direction), &prev, Vec::new(), &mut paths);
+        search(
+            (start, xy(1, 0)),
+            (goal, direction),
+            &prev,
+            Vec::new(),
+            &mut paths,
+        );
     }
     let best_score = paths.iter().map(|path| cost(path)).min().unwrap();
     submit!(1, best_score);
@@ -99,10 +115,19 @@ pub fn solution2() {
     let (_, prev) = dijkstra((start, xy(1, 0)), goal, &grid);
     let mut paths = Vec::new();
     for direction in cardinals() {
-        search((start, xy(1, 0)), (goal, direction), &prev, Vec::new(), &mut paths);
+        search(
+            (start, xy(1, 0)),
+            (goal, direction),
+            &prev,
+            Vec::new(),
+            &mut paths,
+        );
     }
     let best_score = paths.iter().map(|path| cost(path)).min().unwrap();
     paths.retain(|path| cost(path) == best_score);
-    let seats: HashSet<XY> = paths.iter().flat_map(|path| path.iter().map(|node| node.0)).collect();
+    let seats: HashSet<XY> = paths
+        .iter()
+        .flat_map(|path| path.iter().map(|node| node.0))
+        .collect();
     submit!(2, seats.len());
 }
