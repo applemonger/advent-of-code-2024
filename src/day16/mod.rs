@@ -6,36 +6,18 @@ const INF: i32 = i32::MAX / 2;
 
 pub type Node = (XY, XY);
 
-struct Heap {
-    data: Vec<Node>,
-}
-
-impl Heap {
-    fn insert(&mut self, node: Node) {
-        self.data.push(node);
-    }
-
-    fn pop(&mut self, f_score: &HashMap<Node, i32>) -> Option<Node> {
-        self.data
-            .sort_by_key(|node| -f_score.get(node).unwrap_or(&INF));
-        self.data.pop()
-    }
-
-    fn contains(&self, node: &Node) -> bool {
-        self.data.contains(node)
-    }
-}
-
 fn dijkstra(
     start: Node,
     goal: XY,
     map: &HashMap<XY, char>,
 ) -> (HashMap<Node, i32>, HashMap<Node, HashSet<Node>>) {
-    let mut open = Heap { data: vec![start] };
+    let mut open = vec![start];
     let mut prev = HashMap::<Node, HashSet<Node>>::new();
     let mut dist = HashMap::<Node, i32>::new();
     dist.insert(start, 0);
-    'search: while let Some(current) = open.pop(&dist) {
+    'search: while !open.is_empty() {
+        open.sort_by_key(|node| -dist.get(node).unwrap_or(&INF));
+        let current = open.pop().unwrap();
         if current.0 == goal {
             continue 'search;
         }
@@ -50,7 +32,7 @@ fn dijkstra(
                 prev.entry(neighbor).or_default().insert(current);
                 dist.insert(neighbor, alt);
                 if !open.contains(&neighbor) {
-                    open.insert(neighbor);
+                    open.push(neighbor);
                 }
             }
         }
