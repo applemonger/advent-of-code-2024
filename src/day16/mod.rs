@@ -26,22 +26,16 @@ impl Heap {
     }
 }
 
-fn h(a: XY, b: XY) -> i32 {
-    (b.x - a.x).abs() + (b.y - a.y).abs()
-}
-
-fn a_star(
+fn dijkstra(
     start: Node,
     goal: XY,
     map: &HashMap<XY, char>,
 ) -> (HashMap<Node, i32>, HashMap<Node, HashSet<Node>>) {
     let mut open = Heap { data: vec![start] };
     let mut prev = HashMap::<Node, HashSet<Node>>::new();
-    let mut g_score = HashMap::<Node, i32>::new();
-    g_score.insert(start, 0);
-    let mut f_score = HashMap::<Node, i32>::new();
-    f_score.insert(start, h(start.0, goal));
-    'search: while let Some(current) = open.pop(&f_score) {
+    let mut dist = HashMap::<Node, i32>::new();
+    dist.insert(start, 0);
+    'search: while let Some(current) = open.pop(&dist) {
         if current.0 == goal {
             continue 'search;
         }
@@ -51,18 +45,17 @@ fn a_star(
                 continue 'neighbors;
             }
             let cost = 1 + (current.1 != movement) as i32 * 1000;
-            let alt = g_score.get(&current).unwrap_or(&INF) + cost;
-            if alt <= *g_score.get(&neighbor).unwrap_or(&INF) {
+            let alt = dist.get(&current).unwrap_or(&INF) + cost;
+            if alt <= *dist.get(&neighbor).unwrap_or(&INF) {
                 prev.entry(neighbor).or_default().insert(current);
-                g_score.insert(neighbor, alt);
-                f_score.insert(neighbor, alt + h(neighbor.0, goal));
+                dist.insert(neighbor, alt);
                 if !open.contains(&neighbor) {
                     open.insert(neighbor);
                 }
             }
         }
     }
-    (g_score, prev)
+    (dist, prev)
 }
 
 fn search(
@@ -105,7 +98,7 @@ pub fn solution1() {
     let grid = read_grid(data.as_str());
     let start = find_char(&grid, 'S').unwrap();
     let goal = find_char(&grid, 'E').unwrap();
-    let (dist, _) = a_star((start, xy(1, 0)), goal, &grid);
+    let (dist, _) = dijkstra((start, xy(1, 0)), goal, &grid);
     let best_score = cardinals()
         .iter()
         .map(|dir| dist.get(&(goal, *dir)).unwrap_or(&INF))
@@ -120,7 +113,7 @@ pub fn solution2() {
     let grid = read_grid(data.as_str());
     let start = (find_char(&grid, 'S').unwrap(), xy(1, 0));
     let goal = find_char(&grid, 'E').unwrap();
-    let (dist, mut prev) = a_star(start, goal, &grid);
+    let (dist, mut prev) = dijkstra(start, goal, &grid);
     let best_score = cardinals()
         .iter()
         .map(|dir| dist.get(&(goal, *dir)).unwrap_or(&INF))
