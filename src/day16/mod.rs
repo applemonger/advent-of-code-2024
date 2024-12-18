@@ -125,7 +125,7 @@ pub fn solution2() {
     let grid = read_grid(data.as_str());
     let start = find_char(&grid, 'S').unwrap();
     let goal = find_char(&grid, 'E').unwrap();
-    let (dist, prev) = dijkstra((start, xy(1, 0)), &grid);
+    let (_, prev) = dijkstra((start, xy(1, 0)), &grid);
     let mut score = usize::MAX;
     for direction in cardinals() {
         let path_opt = get_path((start, xy(1, 0)), (goal, direction), &prev);
@@ -136,7 +136,7 @@ pub fn solution2() {
     }
 }
 
-fn get_points(dist: &HashMap<(XY, XY), i32>, threshold: i32) -> HashSet<XY> {
+fn _get_points(dist: &HashMap<(XY, XY), i32>, threshold: i32) -> HashSet<XY> {
     dist.iter()
         .filter(|(_, &score)| score <= threshold)
         .map(|(&node, _)| node.0)
