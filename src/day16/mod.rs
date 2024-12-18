@@ -17,11 +17,9 @@ fn dijkstra(
     let mut dist = HashMap::<Node, i32>::new();
     let mut prev = HashMap::<Node, HashSet<Node>>::new();
     let mut open = Vec::<Node>::new();
-    for (&pos, &c) in map.iter() {
-        if c != '#' {
-            for direction in cardinals() {
-                open.push((pos, direction));
-            }
+    for (&pos, _) in map.iter().filter(|&(_, &v)| v != '#') {
+        for direction in cardinals() {
+            open.push((pos, direction));
         }
     }
     dist.insert(source, 0);
@@ -77,7 +75,10 @@ fn cost(path: &[Node]) -> usize {
 }
 
 fn find_char(grid: &HashMap<XY, char>, target: char) -> Option<XY> {
-    grid.iter().find(|&(_, &v)| v == target).map(|(k, _)| k).copied()
+    grid.iter()
+        .find(|&(_, &v)| v == target)
+        .map(|(k, _)| k)
+        .copied()
 }
 
 #[aocd(2024, 16)]
@@ -86,18 +87,12 @@ pub fn solution1() {
     let grid = read_grid(data.as_str());
     let start = find_char(&grid, 'S').unwrap();
     let goal = find_char(&grid, 'E').unwrap();
-    let (_, prev) = dijkstra((start, xy(1, 0)), goal, &grid);
-    let mut paths = Vec::new();
-    for direction in cardinals() {
-        search(
-            (start, xy(1, 0)),
-            (goal, direction),
-            &prev,
-            Vec::new(),
-            &mut paths,
-        );
-    }
-    let best_score = paths.iter().map(|path| cost(path)).min().unwrap();
+    let (dist, _) = dijkstra((start, xy(1, 0)), goal, &grid);
+    let best_score = cardinals()
+        .iter()
+        .map(|dir| dist.get(&(goal, *dir)).unwrap_or(&INF))
+        .min()
+        .unwrap();
     submit!(1, best_score);
 }
 
