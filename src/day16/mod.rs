@@ -1,9 +1,6 @@
 use crate::utils::{cardinals, read_grid, xy, XY};
 use aocd::*;
-use std::{
-    collections::{HashMap, HashSet},
-    usize,
-};
+use std::collections::{HashMap, HashSet};
 
 const INF: i32 = i32::MAX / 2;
 
@@ -65,11 +62,11 @@ fn search(
     }
 }
 
-fn cost(path: &[Node]) -> usize {
+fn cost(path: &[Node]) -> i32 {
     path.windows(2)
         .map(|pair| {
             let turn = pair[1].1 != pair[0].1;
-            1 + (turn as usize) * 1000
+            1 + (turn as i32) * 1000
         })
         .sum()
 }
@@ -100,21 +97,20 @@ pub fn solution1() {
 pub fn solution2() {
     let data = input!();
     let grid = read_grid(data.as_str());
-    let start = find_char(&grid, 'S').unwrap();
+    let start = (find_char(&grid, 'S').unwrap(), xy(1, 0));
     let goal = find_char(&grid, 'E').unwrap();
-    let (_, prev) = dijkstra((start, xy(1, 0)), goal, &grid);
+    let (dist, mut prev) = dijkstra(start, goal, &grid);
+    let best_score = cardinals()
+        .iter()
+        .map(|dir| dist.get(&(goal, *dir)).unwrap_or(&INF))
+        .min()
+        .unwrap();
+    prev.retain(|k, _| dist.get(k).unwrap_or(&INF) <= best_score);
     let mut paths = Vec::new();
-    for direction in cardinals() {
-        search(
-            (start, xy(1, 0)),
-            (goal, direction),
-            &prev,
-            Vec::new(),
-            &mut paths,
-        );
+    for dir in cardinals() {
+        search(start, (goal, dir), &prev, Vec::new(), &mut paths)
     }
-    let best_score = paths.iter().map(|path| cost(path)).min().unwrap();
-    paths.retain(|path| cost(path) == best_score);
+    paths.retain(|path| cost(path) == *best_score);
     let seats: HashSet<XY> = paths
         .iter()
         .flat_map(|path| path.iter().map(|node| node.0))
