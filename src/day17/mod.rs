@@ -127,28 +127,15 @@ pub fn solution1() {
 pub fn solution2() {
     let data = input!();
     let mut machine = Machine::from(data.as_str());
-    let default = machine.clone();
-    let mut a = 1;
-    let mut lower = 0;
-    let mut upper = 0;
-    'bounds: loop {
+    let mut a = 2_isize.pow(3 * 16);
+    'search: loop {
+        a -= 1;
         machine.reset();
         machine.a = a;
         machine.execute();
-        if machine.out.len() == machine.program.len() - 1 && lower == 0 {
-            lower = a;
+        if machine.out == machine.program {
+            break 'search;
         }
-        if machine.out.len() > machine.program.len() && upper == 0 {
-            upper = a;
-            break 'bounds;
-        }
-        a *= 2;
     }
-    let seed = (lower..=upper).into_par_iter().find_any(|a| {
-        let mut machine = default.clone();
-        machine.a = *a;
-        machine.execute();
-        machine.out == machine.program
-    });
-    submit!(1, seed.unwrap());
+    submit!(1, a);
 }
