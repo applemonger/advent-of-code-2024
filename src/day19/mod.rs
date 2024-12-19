@@ -22,8 +22,12 @@ fn fragment(input: String, token: String, start: usize) -> Vec<String> {
     fragments
 }
 
-fn get_tokens(input: &String, dictionary: &Vec<String>) -> Vec<String> {
-    dictionary.iter().filter(|&token| input.contains(token)).cloned().collect()
+fn get_tokens(input: &str, dictionary: &[String]) -> Vec<String> {
+    dictionary
+        .iter()
+        .filter(|&token| input.contains(token))
+        .cloned()
+        .collect()
 }
 
 fn indices(s: String, token: String) -> Vec<usize> {
@@ -104,6 +108,4 @@ pub fn solution1() {
 }
 
 #[aocd(2024, 19)]
-pub fn solution2() {
-    
-}
+pub fn solution2() {}

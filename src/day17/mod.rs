@@ -1,5 +1,4 @@
 use aocd::*;
-use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use regex::Regex;
 
 #[derive(Debug, Default, Hash, PartialEq, Eq, Clone)]
