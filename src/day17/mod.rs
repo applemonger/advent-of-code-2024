@@ -1,5 +1,3 @@
-use std::collections::HashSet;
-
 use aocd::*;
 use regex::Regex;
 
@@ -10,7 +8,6 @@ struct Machine {
     b: isize,
     c: isize,
     program: Vec<u8>,
-    initial: (isize, isize, isize),
     out: Vec<u8>,
 }
 
@@ -21,33 +18,21 @@ impl From<&str> for Machine {
         let a: isize = caps.next().unwrap()[1].parse().unwrap();
         let b: isize = caps.next().unwrap()[1].parse().unwrap();
         let c: isize = caps.next().unwrap()[1].parse().unwrap();
-        let ptr = 0;
         let re = Regex::new(r"Program: (.*)$").unwrap();
         let program = re.captures(value).unwrap().get(1).unwrap().as_str();
         let program = program.split(',').map(|c| c.parse().unwrap()).collect();
-        let initial = (a, b, c);
-        let out = Vec::new();
         Machine {
-            ptr,
+            ptr: 0,
             a,
             b,
             c,
             program,
-            initial,
-            out,
+            out: Vec::new(),
         }
     }
 }
 
 impl Machine {
-    fn reset(&mut self) {
-        self.ptr = 0;
-        self.a = self.initial.0;
-        self.b = self.initial.1;
-        self.c = self.initial.2;
-        self.out = Vec::new();
-    }
-
     fn combo(&self, operand: u8) -> isize {
         match operand {
             0 => 0,
@@ -65,55 +50,42 @@ impl Machine {
     fn execute(&mut self) {
         let opcode = self.program[self.ptr];
         let operand = self.program[self.ptr + 1];
+        let mut jump = 2;
         match opcode {
             0 => {
                 self.a /= 2_isize.pow(self.combo(operand) as u32);
-                self.ptr += 2;
             }
             1 => {
                 self.b ^= self.combo(operand);
-                self.ptr += 2;
             }
             2 => {
                 self.b = self.combo(operand) % 8;
-                self.ptr += 2;
             }
             3 => {
                 if self.a != 0 {
                     self.ptr = operand as usize;
-                } else {
-                    self.ptr += 2;
+                    jump = 0;
                 }
             }
             4 => {
                 self.b ^= self.c;
-                self.ptr += 2;
             }
             5 => {
                 self.out.push((self.combo(operand) % 8) as u8);
-                self.ptr += 2;
             }
             6 => {
                 self.b = self.a / 2_isize.pow(self.combo(operand) as u32);
-                self.ptr += 2;
             }
             7 => {
                 self.c = self.a / 2_isize.pow(self.combo(operand) as u32);
-                self.ptr += 2;
             }
             _ => panic!("Invalid opcode."),
         }
+        self.ptr += jump;
         if self.ptr < self.program.len() {
             self.execute();
         }
     }
-}
-
-fn read_out<T: ToString>(out: &[T]) -> String {
-    out.iter()
-        .map(|x| x.to_string())
-        .collect::<Vec<String>>()
-        .join(",")
 }
 
 #[aocd(2024, 17)]
@@ -121,7 +93,8 @@ pub fn solution1() {
     let data = input!();
     let mut machine = Machine::from(data.as_str());
     machine.execute();
-    submit!(1, read_out(&machine.out));
+    let out: Vec<String> = machine.out.iter().map(|s| s.to_string()).collect();
+    submit!(1, out.join(","));
 }
 
 /// Adapted from https://github.com/Praful/advent_of_code/blob/main/2024/src/day17.py
@@ -135,7 +108,7 @@ fn solve(a: isize, idx: usize, possible: &mut Vec<isize>, default_machine: &Mach
             if machine.out == machine.program {
                 possible.push(candidate);
             } else {
-                solve(candidate, idx+1, possible, default_machine);
+                solve(candidate, idx + 1, possible, default_machine);
             }
         }
     }
@@ -150,4 +123,3 @@ pub fn solution2() {
     let best = possible.iter().min().unwrap();
     submit!(2, *best);
 }
-

@@ -60,8 +60,7 @@ fn solution(input: String, cheat_time: usize) -> usize {
     let path = a_star(start, end, &grid);
     let mut cheats = 0;
     for (i, &a) in path.iter().enumerate() {
-        for j in (i+1)..path.len() {
-            let b = path[j];
+        for (j, &b) in path.iter().enumerate().skip(i + 1) {
             let dist = h(a, b) as usize;
             if dist <= cheat_time && dist < (j - i) {
                 let shave = (j - i) - dist;
