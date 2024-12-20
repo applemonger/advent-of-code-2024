@@ -52,33 +52,19 @@ impl Machine {
         let operand = self.program[self.ptr + 1];
         let mut jump = 2;
         match opcode {
-            0 => {
-                self.a /= 2_isize.pow(self.combo(operand) as u32);
-            }
-            1 => {
-                self.b ^= self.combo(operand);
-            }
-            2 => {
-                self.b = self.combo(operand) % 8;
-            }
+            0 => self.a /= 2_isize.pow(self.combo(operand) as u32),
+            1 => self.b ^= self.combo(operand),
+            2 => self.b = self.combo(operand) % 8,
             3 => {
                 if self.a != 0 {
                     self.ptr = operand as usize;
                     jump = 0;
                 }
             }
-            4 => {
-                self.b ^= self.c;
-            }
-            5 => {
-                self.out.push((self.combo(operand) % 8) as u8);
-            }
-            6 => {
-                self.b = self.a / 2_isize.pow(self.combo(operand) as u32);
-            }
-            7 => {
-                self.c = self.a / 2_isize.pow(self.combo(operand) as u32);
-            }
+            4 => self.b ^= self.c,
+            5 => self.out.push((self.combo(operand) % 8) as u8),
+            6 => self.b = self.a / 2_isize.pow(self.combo(operand) as u32),
+            7 => self.c = self.a / 2_isize.pow(self.combo(operand) as u32),
             _ => panic!("Invalid opcode."),
         }
         self.ptr += jump;
