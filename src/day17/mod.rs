@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use aocd::*;
 use regex::Regex;
 
@@ -122,19 +124,30 @@ pub fn solution1() {
     submit!(1, read_out(&machine.out));
 }
 
+/// Adapted from https://github.com/Praful/advent_of_code/blob/main/2024/src/day17.py
+fn solve(a: isize, idx: usize, possible: &mut Vec<isize>, default_machine: &Machine) {
+    for n in 0..8 {
+        let mut machine = default_machine.clone();
+        let candidate = (a << 3) | n;
+        machine.a = candidate;
+        machine.execute();
+        if machine.out == machine.program[(machine.program.len() - idx)..] {
+            if machine.out == machine.program {
+                possible.push(candidate);
+            } else {
+                solve(candidate, idx+1, possible, default_machine);
+            }
+        }
+    }
+}
+
 #[aocd(2024, 17)]
 pub fn solution2() {
     let data = input!();
-    let mut machine = Machine::from(data.as_str());
-    let mut a = 2_isize.pow(3 * 16);
-    'search: loop {
-        a -= 1;
-        machine.reset();
-        machine.a = a;
-        machine.execute();
-        if machine.out == machine.program {
-            break 'search;
-        }
-    }
-    submit!(1, a);
+    let machine = Machine::from(data.as_str());
+    let mut possible = Vec::new();
+    solve(0, 1, &mut possible, &machine);
+    let best = possible.iter().min().unwrap();
+    submit!(2, *best);
 }
+
