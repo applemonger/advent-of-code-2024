@@ -1,6 +1,6 @@
 use crate::utils::{read_grid, XY};
 use aocd::*;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 const INF: i32 = i32::MAX / 2;
 
@@ -53,25 +53,33 @@ fn find_char(grid: &HashMap<XY, char>, c: char) -> Option<XY> {
     grid.iter().find(|&(_, &v)| v == c).map(|(k, _)| k).copied()
 }
 
-#[aocd(2024, 20)]
-pub fn solution1() {
-    let data = input!();
-    let mut grid = read_grid(data.as_str());
+fn solution(input: String, cheat_time: usize) -> usize {
+    let grid = read_grid(input.as_str());
     let start = find_char(&grid, 'S').unwrap();
     let end = find_char(&grid, 'E').unwrap();
     let path = a_star(start, end, &grid);
-    let mut walls: HashSet<XY> = path.iter().flat_map(|p| p.neighbors()).collect();
-    walls.retain(|p| grid.get(p) == Some(&'#'));
     let mut cheats = 0;
-    for wall in walls {
-        grid.insert(wall, '.');
-        let cheat_path = a_star(start, end, &grid);
-        grid.insert(wall, '#');
-        let shave = path.len() - cheat_path.len();
-        cheats += (shave >= 100) as usize;
+    for (i, &a) in path.iter().enumerate() {
+        for j in (i+1)..path.len() {
+            let b = path[j];
+            let dist = h(a, b) as usize;
+            if dist <= cheat_time && dist < (j - i) {
+                let shave = (j - i) - dist;
+                cheats += (shave >= 100) as usize;
+            }
+        }
     }
-    submit!(1, cheats);
+    cheats
 }
 
 #[aocd(2024, 20)]
-pub fn solution2() {}
+pub fn solution1() {
+    let data = input!();
+    submit!(1, solution(data, 2));
+}
+
+#[aocd(2024, 20)]
+pub fn solution2() {
+    let data = input!();
+    submit!(2, solution(data, 20));
+}
