@@ -17,7 +17,7 @@ fn get_tokens(input: &str, dictionary: &[&str]) -> Vec<String> {
 }
 
 #[cached]
-fn reduce(input: String, tokens: Vec<String>) -> usize {
+fn combos(input: String, tokens: Vec<String>) -> usize {
     let mut sequence = 0;
     for token in tokens.iter() {
         if input.starts_with(token) {
@@ -25,7 +25,7 @@ fn reduce(input: String, tokens: Vec<String>) -> usize {
             if remainder.is_empty() {
                 sequence += 1;
             } else {
-                sequence += reduce(remainder, tokens.clone());
+                sequence += combos(remainder, tokens.clone());
             }
         }
     }
@@ -38,7 +38,7 @@ pub fn solution1() {
     let (dictionary, designs) = read_data(data.as_str());
     let mut total = 0;
     for design in designs {
-        total += (reduce(design.to_string(), get_tokens(design, &dictionary)) > 0) as usize;
+        total += (combos(design.to_string(), get_tokens(design, &dictionary)) > 0) as usize;
     }
     submit!(1, total);
 }
@@ -49,7 +49,7 @@ pub fn solution2() {
     let (dictionary, designs) = read_data(data.as_str());
     let mut total = 0;
     for design in designs {
-        total += reduce(design.to_string(), get_tokens(design, &dictionary));
+        total += combos(design.to_string(), get_tokens(design, &dictionary));
     }
     submit!(2, total);
 }
