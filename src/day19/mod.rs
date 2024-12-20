@@ -21,7 +21,7 @@ fn combos(input: String, tokens: Vec<String>) -> usize {
     let mut sequence = 0;
     for token in tokens.iter() {
         if input.starts_with(token) {
-            let remainder = input.clone().split_off(token.len());
+            let remainder = input[token.len()..].to_string();
             if remainder.is_empty() {
                 sequence += 1;
             } else {
