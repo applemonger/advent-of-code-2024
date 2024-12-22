@@ -73,8 +73,12 @@ impl Pad {
             possible.push(sub);
             self.ptr = self.pos(&c);
         }
-        let total: Vec<Vec<String>> = possible.iter().cloned().multi_cartesian_product().collect();
-        let total: Vec<String> = total.iter().map(|v| v.join("")).collect();
+        let total: Vec<String> = possible
+            .iter()
+            .cloned()
+            .multi_cartesian_product()
+            .map(|v| v.join(""))
+            .collect();
         total
     }
 }
@@ -125,7 +129,7 @@ fn numeric(s: &str) -> usize {
     cap.get(1).unwrap().as_str().parse().unwrap()
 }
 
-#[aocd(2024, 21)]
+#[aocd(2024, 21, "src/day21/test.txt")]
 pub fn solution1() {
     let data = input!();
     let mut keypad = Pad::new(&[
