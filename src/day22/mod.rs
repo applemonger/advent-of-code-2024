@@ -13,7 +13,7 @@ fn gen(mut num: usize) -> usize {
     num % 16777216
 }
 
-fn seq_map(seed: usize, n: usize) -> HashMap<Seq, usize> {
+fn prices(seed: usize, n: usize) -> HashMap<Seq, usize> {
     let mut prices = Vec::new();
     (0..n).fold(seed, |num, _| {
         prices.push(num as isize % 10);
@@ -43,7 +43,7 @@ pub fn solution2() {
     let secrets: Vec<usize> = data.lines().map(|x| x.parse().unwrap()).collect();
     let mut totals = HashMap::<Seq, usize>::new();
     for secret in secrets {
-        for (seq, price) in seq_map(secret, 2000) {
+        for (seq, price) in prices(secret, 2000) {
             *totals.entry(seq).or_insert(0) += price;
         }
     }
