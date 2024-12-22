@@ -11,12 +11,13 @@ fn path(start: XY, goal: XY, map: &HashMap<XY, char>) -> Vec<XY> {
     let mut open = vec![start];
     'trail: while current != goal {
         for neighbor in current.neighbors() {
-            if map.get(&neighbor) != Some(&'#') && !map.get(&neighbor).is_none() {
-                if !open.contains(&neighbor) {
-                    open.push(neighbor);
-                    current = neighbor;
-                    continue 'trail;
-                }
+            if map.get(&neighbor) != Some(&'#')
+                && map.get(&neighbor).is_some()
+                && !open.contains(&neighbor)
+            {
+                open.push(neighbor);
+                current = neighbor;
+                continue 'trail;
             }
         }
     }
