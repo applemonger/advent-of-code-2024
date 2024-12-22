@@ -13,11 +13,11 @@ fn gen_last(mut num: usize, n: usize) -> usize {
 
 fn gen(mut num: usize) -> usize {
     num ^= num * 64;
-    num = num % 16777216;
+    num %= 16777216;
     num ^= num / 32;
-    num = num % 16777216;
+    num %= 16777216;
     num ^= num * 2048;
-    num = num % 16777216;
+    num %= 16777216;
     num
 }
 
@@ -32,9 +32,7 @@ fn seq_map(mut num: usize, n: usize) -> HashMap<Seq, usize> {
     let mut changes = HashMap::<Seq, usize>::new();
     diff.windows(4).enumerate().for_each(|(i, diffs)| {
         let seq = (diffs[0], diffs[1], diffs[2], diffs[3]);
-        if !changes.contains_key(&seq) {
-            changes.insert(seq, prices[i+4] as usize);
-        }
+        changes.entry(seq).or_insert(prices[i + 4] as usize);
     });
     changes
 }
