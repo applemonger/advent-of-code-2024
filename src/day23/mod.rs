@@ -15,13 +15,11 @@ pub fn solution1() {
     for (node, adjacent) in graph.iter() {
         for a in adjacent.iter() {
             for b in adjacent.iter() {
-                if a != b {
-                    if graph.get(a).unwrap().contains(b) {
-                        let mut cluster = vec![node, a, b];
-                        cluster.sort();
-                        if node.starts_with('t') || a.starts_with('t') || b.starts_with('t') {
-                            clusters.insert((cluster[0], cluster[1], cluster[2]));
-                        }
+                if a != b && graph.get(a).unwrap().contains(b) {
+                    let mut cluster = [node, a, b];
+                    cluster.sort();
+                    if node.starts_with('t') || a.starts_with('t') || b.starts_with('t') {
+                        clusters.insert((cluster[0], cluster[1], cluster[2]));
                     }
                 }
             }
