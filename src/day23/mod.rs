@@ -20,7 +20,7 @@ pub fn solution1() {
     for (node, adjacent) in graph.iter() {
         for a in adjacent.iter() {
             for b in adjacent.iter() {
-                if a != b && graph.get(a).unwrap().contains(b) {
+                if a != b && graph[a].contains(b) {
                     let mut cluster = [node, a, b];
                     cluster.sort();
                     if node.starts_with('t') || a.starts_with('t') || b.starts_with('t') {
@@ -43,10 +43,7 @@ pub fn solution2() {
         let mut cluster = HashSet::new();
         cluster.insert(node);
         for other in graph.keys().filter(|n| *n != node) {
-            if cluster
-                .iter()
-                .all(|member| graph.get(other).unwrap().contains(*member))
-            {
+            if cluster.iter().all(|member| graph[other].contains(*member)) {
                 cluster.insert(other);
             }
         }
