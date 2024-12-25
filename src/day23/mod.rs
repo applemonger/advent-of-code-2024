@@ -28,9 +28,5 @@ pub fn solution1() {
     submit!(1, clusters.len());
 }
 
-
-
 #[aocd(2024, 23)]
-pub fn solution2() {
-    
-}
+pub fn solution2() {}
