@@ -1,40 +1,19 @@
+use std::collections::HashSet;
+
 use aocd::*;
 
-use crate::utils::{xy, Grid};
+use crate::utils::{xy, Grid, XY};
 
-#[derive(Debug)]
-struct Key {
-    values: [u8; 5],
-}
-
-impl Key {
-    fn fits(&self, lock: &Lock) -> bool {
-        self.values
-            .iter()
-            .zip(lock.values.iter())
-            .all(|(a, b)| *a + *b < 6)
-    }
-}
-
-#[derive(Debug)]
-struct Lock {
-    values: [u8; 5],
-}
-
-fn read_data(input: String) -> (Vec<Key>, Vec<Lock>) {
-    let mut keys = Vec::new();
-    let mut locks = Vec::new();
+fn read_data(input: String) -> (Vec<HashSet<XY>>, Vec<HashSet<XY>>) {
+    let mut keys = Vec::<HashSet<XY>>::new();
+    let mut locks = Vec::<HashSet<XY>>::new();
     input.split("\n\n").for_each(|block| {
-        let grid = Grid::from(block);
-        let mut values = [0, 0, 0, 0, 0];
-        for (point, _) in grid.data.iter().filter(|(_, &v)| v == '#') {
-            values[point.x as usize] += 1;
-        }
-        values.iter_mut().for_each(|n| *n -= 1);
+        let mut grid = Grid::from(block);
+        grid.data.retain(|_, &mut v| v == '#');
         if grid.data.get(&xy(0, 0)) == Some(&'#') {
-            locks.push(Lock { values });
+            locks.push(grid.data.keys().copied().collect());
         } else {
-            keys.push(Key { values });
+            keys.push(grid.data.keys().copied().collect());
         }
     });
     (keys, locks)
@@ -47,7 +26,7 @@ pub fn solution1() {
     let mut count = 0;
     for key in keys.iter() {
         for lock in locks.iter() {
-            if key.fits(lock) {
+            if key.intersection(lock).count() == 0 {
                 count += 1;
             }
         }
